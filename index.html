@@ -6,90 +6,73 @@
 <title>Radar Militare</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    background:#000;
-    color:#00ff41;
-    font-family:'Courier New', monospace;
-    min-height:100vh;
-  }
+  body { background:#000; color:#00ff41; font-family:'Courier New',monospace; min-height:100vh; }
 
   header {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:12px 24px;
-    border-bottom:1px solid #003300;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 24px; border-bottom:1px solid #003300;
   }
   .title { font-size:1.1rem; letter-spacing:0.3em; font-weight:bold; }
+  .header-right { display:flex; align-items:center; gap:16px; }
   .status { font-size:0.75rem; letter-spacing:0.1em; display:flex; align-items:center; gap:8px; }
   .dot { width:8px;height:8px;border-radius:50%;background:#ff0000;animation:blink 1s infinite;flex-shrink:0; }
   .dot.online { background:#00ff41;animation:none; }
   @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
 
-  /* config banner (mostrato solo se non configurato) */
-  #configBanner {
-    background:#110000;
-    border:1px solid #330000;
-    color:#ff6666;
-    padding:12px 24px;
-    font-size:0.8rem;
-    display:none;
-    align-items:center;
-    gap:12px;
-    flex-wrap:wrap;
+  /* Tasto impostazioni */
+  .btn-settings {
+    background:none; border:1px solid #003300; color:#005500;
+    font-family:'Courier New',monospace; font-size:0.8rem;
+    padding:6px 12px; cursor:pointer; letter-spacing:0.1em;
+    transition: all .2s;
   }
-  #configBanner input {
-    background:#000;
-    border:1px solid #330000;
-    color:#ff6666;
-    padding:6px 10px;
-    font-family:'Courier New',monospace;
-    font-size:0.8rem;
-    width:320px;
-  }
-  #configBanner button {
-    background:none;
-    border:1px solid #ff3333;
-    color:#ff3333;
-    padding:6px 14px;
-    font-family:'Courier New',monospace;
-    cursor:pointer;
-  }
+  .btn-settings:hover { border-color:#00ff41; color:#00ff41; }
 
-  .main {
-    display:flex;
-    gap:24px;
-    padding:24px;
-    flex-wrap:wrap;
-    justify-content:center;
+  /* Modal impostazioni */
+  .modal-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.85); z-index:100;
+    align-items:center; justify-content:center;
   }
-
-  /* radar */
-  #radarCanvas { display:block; border:1px solid #003300; }
-
-  /* pannello */
-  .panel {
-    flex:1;
-    min-width:280px;
-    max-width:400px;
-    display:flex;
-    flex-direction:column;
-    gap:16px;
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:#000; border:1px solid #00ff41;
+    padding:28px; width:480px; max-width:90vw;
   }
+  .modal-title {
+    font-size:0.8rem; letter-spacing:0.2em; color:#00ff41;
+    margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid #003300;
+  }
+  .modal label { font-size:0.75rem; color:#005500; display:block; margin-bottom:6px; letter-spacing:0.1em; }
+  .modal input {
+    width:100%; background:#000; border:1px solid #003300;
+    color:#00ff41; padding:10px 12px; font-family:'Courier New',monospace;
+    font-size:0.85rem; margin-bottom:16px; outline:none;
+  }
+  .modal input:focus { border-color:#00ff41; }
+  .modal-hint { font-size:0.7rem; color:#005500; margin-top:-10px; margin-bottom:16px; }
+  .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
+  .btn { padding:8px 18px; background:none; border:1px solid #003300; color:#00ff41; font-family:'Courier New',monospace; font-size:0.75rem; letter-spacing:0.1em; cursor:pointer; }
+  .btn:hover { background:#001100; }
+  .btn-primary { border-color:#00ff41; }
+  .btn-primary:hover { background:#003300; }
+  .btn-danger { border-color:#330000; color:#ff3333; }
+  .btn-danger:hover { background:#110000; }
+
+  .main { display:flex; gap:24px; padding:24px; flex-wrap:wrap; justify-content:center; }
+  #radarCanvas { display:block; border:1px solid #003300; max-width:100%; }
+
+  .panel { flex:1; min-width:280px; max-width:400px; display:flex; flex-direction:column; gap:16px; }
   .box { border:1px solid #003300; padding:16px; background:#000; }
   .box-title {
-    font-size:0.7rem;
-    letter-spacing:0.2em;
-    color:#005500;
-    margin-bottom:12px;
-    border-bottom:1px solid #003300;
-    padding-bottom:6px;
+    font-size:0.7rem; letter-spacing:0.2em; color:#005500;
+    margin-bottom:12px; border-bottom:1px solid #003300; padding-bottom:6px;
   }
   .last-data { font-size:1.4rem; letter-spacing:0.1em; }
   .last-data span { color:#00ff41; }
   .last-label { font-size:0.7rem; color:#005500; margin-top:2px; }
 
-  .storico-wrap { max-height:260px; overflow-y:auto; }
+  .storico-wrap { max-height:240px; overflow-y:auto; }
   .storico-wrap::-webkit-scrollbar { width:4px; }
   .storico-wrap::-webkit-scrollbar-thumb { background:#003300; }
   table { width:100%; border-collapse:collapse; font-size:0.8rem; }
@@ -97,29 +80,36 @@
   td { padding:5px 8px; border-bottom:1px solid #001100; }
   tr:hover td { background:#001100; }
 
-  .btn { padding:8px 16px; background:none; border:1px solid #003300; color:#00ff41; font-family:'Courier New',monospace; font-size:0.75rem; letter-spacing:0.1em; cursor:pointer; }
-  .btn:hover { background:#001100; }
-  .btn-danger { border-color:#330000; color:#ff3333; }
-  .btn-danger:hover { background:#110000; }
-
-  .counter { font-size:0.75rem; color:#005500; margin-top:8px; }
+  .counter { font-size:0.7rem; color:#005500; margin-top:8px; }
+  .table-actions { display:flex; justify-content:flex-end; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="title">⬡ SISTEMA RADAR MINIATURA</div>
-  <div class="status">
-    <div class="dot" id="statusDot"></div>
-    <span id="statusText">OFFLINE</span>
+  <div class="header-right">
+    <div class="status">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusText">OFFLINE</span>
+    </div>
+    <button class="btn-settings" onclick="openSettings()">⚙ SERVER</button>
   </div>
 </header>
 
-<!-- Banner configurazione (visibile se manca il server URL) -->
-<div id="configBanner">
-  ⚠ Inserisci l'URL del tuo server ngrok:
-  <input type="text" id="serverInput" placeholder="https://il-tuo-dominio.ngrok-free.app">
-  <button onclick="salvaServer()">CONNETTI</button>
+<!-- MODAL IMPOSTAZIONI -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeIfOutside(event)">
+  <div class="modal">
+    <div class="modal-title">⚙ CONFIGURAZIONE SERVER</div>
+    <label>URL SERVER NGROK</label>
+    <input type="text" id="serverInput" placeholder="https://il-tuo-dominio.ngrok-free.app">
+    <div class="modal-hint">Trovalo su http://localhost:4040 mentre Docker è avviato</div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="disconnetti()">DISCONNETTI</button>
+      <button class="btn" onclick="closeSettings()">ANNULLA</button>
+      <button class="btn btn-primary" onclick="salvaServer()">CONNETTI</button>
+    </div>
+  </div>
 </div>
 
 <div class="main">
@@ -140,7 +130,9 @@
     <div class="box" style="flex:1">
       <div class="box-title" style="display:flex;justify-content:space-between;align-items:center">
         <span>STORICO RILEVAMENTI</span>
-        <button class="btn btn-danger" onclick="cancellaStorico()">CANCELLA</button>
+        <div class="table-actions">
+          <button class="btn btn-danger" style="font-size:0.7rem;padding:4px 10px" onclick="cancellaStorico()">CANCELLA</button>
+        </div>
       </div>
       <div class="storico-wrap">
         <table>
@@ -157,25 +149,6 @@
 </div>
 
 <script>
-// ─── CONFIGURAZIONE SERVER ────────────────────
-// Legge l'URL ngrok dal localStorage (salvato dall'utente)
-// oppure da un parametro ?server=https://... nell'URL
-function getServerUrl() {
-  const params = new URLSearchParams(location.search);
-  if (params.get('server')) {
-    localStorage.setItem('radarServer', params.get('server'));
-  }
-  return localStorage.getItem('radarServer');
-}
-
-function salvaServer() {
-  const val = document.getElementById('serverInput').value.trim().replace(/\/$/, '');
-  if (!val) return;
-  localStorage.setItem('radarServer', val);
-  document.getElementById('configBanner').style.display = 'none';
-  init();
-}
-
 // ─── RADAR CANVAS ─────────────────────────────
 const canvas = document.getElementById('radarCanvas');
 const ctx    = canvas.getContext('2d');
@@ -185,78 +158,50 @@ const R      = canvas.height - 20;
 const punti  = [];
 let   sweepAngle = 0;
 
-function gradToRad(deg) {
-  return Math.PI - (deg * Math.PI / 180);
-}
+function gradToRad(deg) { return Math.PI - (deg * Math.PI / 180); }
 
 function drawRadar() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Cerchi
-  ctx.lineWidth = 0.5;
   [0.25, 0.5, 0.75, 1.0].forEach(f => {
-    ctx.strokeStyle = '#003300';
-    ctx.beginPath();
-    ctx.arc(CX, CY, R * f, Math.PI, 2 * Math.PI);
-    ctx.stroke();
-    ctx.fillStyle = '#005500';
-    ctx.font = '10px Courier New';
-    ctx.textAlign = 'left';
-    ctx.fillText(`${Math.round(f * 100)}cm`, CX + R * f + 3, CY - 3);
+    ctx.strokeStyle = '#003300'; ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.arc(CX, CY, R*f, Math.PI, 2*Math.PI); ctx.stroke();
+    ctx.fillStyle = '#005500'; ctx.font = '10px Courier New'; ctx.textAlign = 'left';
+    ctx.fillText(`${Math.round(f*100)}cm`, CX + R*f + 3, CY - 3);
   });
 
-  // Linee angolari
   for (let a = 0; a <= 180; a += 30) {
     const rad = gradToRad(a);
-    ctx.strokeStyle = '#002200';
-    ctx.lineWidth = 0.5;
-    ctx.beginPath();
-    ctx.moveTo(CX, CY);
-    ctx.lineTo(CX + R * Math.cos(rad), CY + R * Math.sin(rad));
-    ctx.stroke();
-    ctx.fillStyle = '#005500';
-    ctx.font = '10px Courier New';
-    ctx.textAlign = 'center';
-    const lx = CX + (R + 14) * Math.cos(rad);
-    const ly = CY + (R + 14) * Math.sin(rad);
-    ctx.fillText(`${a}°`, lx, ly);
+    ctx.strokeStyle = '#002200'; ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.moveTo(CX, CY);
+    ctx.lineTo(CX + R*Math.cos(rad), CY + R*Math.sin(rad)); ctx.stroke();
+    ctx.fillStyle = '#005500'; ctx.font = '10px Courier New'; ctx.textAlign = 'center';
+    ctx.fillText(`${a}°`, CX+(R+14)*Math.cos(rad), CY+(R+14)*Math.sin(rad));
   }
 
-  // Punti rilevati con fade
   punti.forEach(p => {
-    const rad  = gradToRad(p.angolo);
-    const pr   = (Math.min(p.distanza, 100) / 100) * R;
-    const px   = CX + pr * Math.cos(rad);
-    const py   = CY + pr * Math.sin(rad);
-    ctx.beginPath();
-    ctx.arc(px, py, 4, 0, 2 * Math.PI);
-    ctx.fillStyle = `rgba(0,255,65,${p.alpha})`;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(px, py, 9, 0, 2 * Math.PI);
-    ctx.strokeStyle = `rgba(0,255,65,${p.alpha * 0.25})`;
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    const rad = gradToRad(p.angolo);
+    const pr  = (Math.min(p.distanza, 100) / 100) * R;
+    const px  = CX + pr * Math.cos(rad);
+    const py  = CY + pr * Math.sin(rad);
+    ctx.beginPath(); ctx.arc(px, py, 4, 0, 2*Math.PI);
+    ctx.fillStyle = `rgba(0,255,65,${p.alpha})`; ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, 9, 0, 2*Math.PI);
+    ctx.strokeStyle = `rgba(0,255,65,${p.alpha*0.25})`; ctx.lineWidth = 1; ctx.stroke();
     p.alpha -= 0.002;
   });
-  for (let i = punti.length - 1; i >= 0; i--) {
+  for (let i = punti.length-1; i >= 0; i--) {
     if (punti[i].alpha <= 0) punti.splice(i, 1);
   }
 
-  // Linea sweep
   const swRad = gradToRad(sweepAngle);
-  const g = ctx.createLinearGradient(CX, CY,
-    CX + R * Math.cos(swRad), CY + R * Math.sin(swRad));
-  g.addColorStop(0, 'rgba(0,255,65,0)');
-  g.addColorStop(1, 'rgba(0,255,65,0.9)');
-  ctx.beginPath();
-  ctx.moveTo(CX, CY);
-  ctx.lineTo(CX + R * Math.cos(swRad), CY + R * Math.sin(swRad));
-  ctx.strokeStyle = g;
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  const g = ctx.createLinearGradient(CX, CY, CX+R*Math.cos(swRad), CY+R*Math.sin(swRad));
+  g.addColorStop(0, 'rgba(0,255,65,0)'); g.addColorStop(1, 'rgba(0,255,65,0.9)');
+  ctx.beginPath(); ctx.moveTo(CX, CY);
+  ctx.lineTo(CX+R*Math.cos(swRad), CY+R*Math.sin(swRad));
+  ctx.strokeStyle = g; ctx.lineWidth = 2; ctx.stroke();
 
   sweepAngle = (sweepAngle + 0.3) % 180;
   requestAnimationFrame(drawRadar);
@@ -268,19 +213,49 @@ function addPoint(angolo, distanza) {
   punti.push({ angolo, distanza, alpha: 1.0 });
 }
 
+// ─── SETTINGS MODAL ───────────────────────────
+function openSettings() {
+  const url = localStorage.getItem('radarServer') || '';
+  document.getElementById('serverInput').value = url;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+function closeIfOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeSettings();
+}
+function salvaServer() {
+  const val = document.getElementById('serverInput').value.trim().replace(/\/$/, '');
+  if (!val) return;
+  localStorage.setItem('radarServer', val);
+  closeSettings();
+  // riconnetti con nuovo URL
+  if (ws) ws.close();
+  setTimeout(() => connectWS(val), 500);
+  caricaStorico();
+}
+function disconnetti() {
+  localStorage.removeItem('radarServer');
+  if (ws) ws.close();
+  document.getElementById('statusDot').className = 'dot';
+  document.getElementById('statusText').textContent = 'OFFLINE';
+  closeSettings();
+}
+
 // ─── WEBSOCKET ────────────────────────────────
 let ws;
 let totalCount = 0;
 
 function connectWS(serverUrl) {
-  const wsUrl = serverUrl.replace(/^http/, 'ws');
-  ws = new WebSocket(wsUrl);
+  const wsUrl = serverUrl.replace(/^https/, 'wss').replace(/^http/, 'ws');
+  try { ws = new WebSocket(wsUrl); } catch(e) { return; }
 
   ws.onopen = () => {
-    document.getElementById('statusDot').className  = 'dot online';
-    document.getElementById('statusText').textContent = 'ONLINE — ' + serverUrl.replace('https://', '');
+    document.getElementById('statusDot').className = 'dot online';
+    document.getElementById('statusText').textContent =
+      'ONLINE — ' + serverUrl.replace('https://', '');
   };
-
   ws.onmessage = e => {
     const d = JSON.parse(e.data);
     addPoint(d.angolo, d.distanza);
@@ -289,19 +264,18 @@ function connectWS(serverUrl) {
     totalCount++;
     document.getElementById('counter').textContent = totalCount + ' rilevamenti';
   };
-
   ws.onclose = () => {
-    document.getElementById('statusDot').className  = 'dot';
+    document.getElementById('statusDot').className = 'dot';
     document.getElementById('statusText').textContent = 'OFFLINE — riconnessione...';
-    setTimeout(() => connectWS(serverUrl), 4000);
+    const url = localStorage.getItem('radarServer');
+    if (url) setTimeout(() => connectWS(url), 4000);
   };
-
   ws.onerror = () => ws.close();
 }
 
-// ─── API STORICO ──────────────────────────────
+// ─── STORICO ──────────────────────────────────
 async function caricaStorico() {
-  const url = getServerUrl();
+  const url = localStorage.getItem('radarServer');
   if (!url) return;
   try {
     const res  = await fetch(`${url}/api/storico?limit=100`);
@@ -311,13 +285,11 @@ async function caricaStorico() {
     dati.slice(0, 40).forEach(d => addPoint(d.angolo, d.distanza));
     totalCount = dati.length;
     document.getElementById('counter').textContent = totalCount + ' rilevamenti';
-  } catch(e) {
-    console.error('Errore caricamento storico:', e);
-  }
+  } catch(e) { console.error('Storico non raggiungibile:', e); }
 }
 
 async function cancellaStorico() {
-  const url = getServerUrl();
+  const url = localStorage.getItem('radarServer');
   if (!url || !confirm('Cancellare tutto lo storico?')) return;
   await fetch(`${url}/api/storico`, { method:'DELETE' });
   document.getElementById('storicoBody').innerHTML = '';
@@ -325,12 +297,10 @@ async function cancellaStorico() {
   document.getElementById('counter').textContent = '0 rilevamenti';
 }
 
-// ─── TABELLA ──────────────────────────────────
 function aggiornaUltimo(d) {
   document.getElementById('lastAng').textContent  = parseFloat(d.angolo).toFixed(1);
   document.getElementById('lastDist').textContent = d.distanza;
-  document.getElementById('lastTime').textContent =
-    new Date(d.timestamp).toLocaleTimeString('it-IT');
+  document.getElementById('lastTime').textContent = new Date(d.timestamp).toLocaleTimeString('it-IT');
 }
 
 function aggiungiRiga(d, prepend) {
@@ -345,17 +315,14 @@ function aggiungiRiga(d, prepend) {
 }
 
 // ─── INIT ─────────────────────────────────────
-function init() {
-  const url = getServerUrl();
-  if (!url) {
-    document.getElementById('configBanner').style.display = 'flex';
-    return;
-  }
-  connectWS(url);
+const savedUrl = localStorage.getItem('radarServer');
+if (savedUrl) {
+  connectWS(savedUrl);
   caricaStorico();
+} else {
+  // Nessun server salvato → apri subito le impostazioni
+  setTimeout(openSettings, 500);
 }
-
-init();
 </script>
 </body>
 </html>
