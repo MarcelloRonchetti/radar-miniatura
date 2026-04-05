@@ -84,11 +84,17 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    overflow:hidden;
-    padding:24px;
+    overflow:visible;
+    padding:16px;
   }
   /* canvas con dimensioni fisse in px, ridimensionato per lo schermo */
-  #radarCanvas { display:block; width:min(100%, 760px); height:auto; }
+  #radarCanvas {
+    display:block;
+    width:100%;
+    max-width: calc(100vw - 320px);
+    max-height: calc(100vh - 140px);
+    height:auto;
+  }
 
   /* ── pannello destra: scroll interno, non cambia altezza ── */
   .side {
