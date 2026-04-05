@@ -7,13 +7,13 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:        #161b22;
-    --surface:   #1e2530;
+    --bg:        #1e1f21;
+    --surface:   #2a2c2e;
     --border:    #2a3441;
-    --accent:    #58a6c8;
-    --accent-dim:#2d5a73;
+    --accent:    #21411b;
+    --accent-dim:#133a13;
     --text:      #c9d1d9;
-    --text-dim:  #6e7681;
+    --text-dim:  #777c82;
     --green:     #3fb950;
     --red:       #f85149;
   }
@@ -259,13 +259,7 @@ function draw() {
   ctx.fillStyle = 'rgba(58,166,200,0.08)';
   ctx.fill();
 
-  // Sweep — linea
-  ctx.beginPath();
-  ctx.moveTo(CX, CY);
-  ctx.lineTo(CX + R * Math.cos(sr), CY - R * Math.sin(sr));
-  ctx.strokeStyle = 'rgba(88,166,200,0.65)';
-  ctx.lineWidth   = 1.5;
-  ctx.stroke();
+  // Sweep line removed
 
   // Punti rilevati con fade
   for (let i = pts.length - 1; i >= 0; i--) {
