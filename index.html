@@ -9,9 +9,9 @@
   :root {
     --bg:        #1e1f21;
     --surface:   #2a2c2e;
-    --border:    #2a3441;
-    --accent:    #21411b;
-    --accent-dim:#133a13;
+    --border:    #2a2c2e;
+    --accent:    #2a2c2e;
+    --accent-dim:#2a2c2e;
     --text:      #c9d1d9;
     --text-dim:  #777c82;
     --green:     #3fb950;
@@ -87,8 +87,8 @@
     overflow:hidden;
     padding:24px;
   }
-  /* canvas con dimensioni fisse in px, niente % */
-  #radarCanvas { display:block; }
+  /* canvas con dimensioni fisse in px, ridimensionato per lo schermo */
+  #radarCanvas { display:block; width:min(100%, 620px); height:auto; }
 
   /* ── pannello destra: scroll interno, non cambia altezza ── */
   .side {
@@ -133,7 +133,7 @@
 <div id="cfgBanner">
   server ngrok:
   <input type="text" id="srvInput" placeholder="https://xxxx.ngrok-free.app">
-  <button onclick="saveServer()">connetti</button>
+  <button type="button" onclick="saveServer()">connetti</button>
 </div>
 
 <div class="main">
@@ -161,8 +161,8 @@
       </table>
     </div>
     <div class="footer-btns">
-      <button class="btn" onclick="loadHistory()">↺ storico</button>
-      <button class="btn btn-danger" onclick="clearHistory()">✕ cancella</button>
+      <button type="button" class="btn" onclick="loadHistory()">↺ storico</button>
+      <button type="button" class="btn btn-danger" onclick="clearHistory()">✕ cancella</button>
     </div>
   </div>
 </div>
@@ -173,15 +173,15 @@ const canvas = document.getElementById('radarCanvas');
 const ctx    = canvas.getContext('2d');
 
 // Dimensioni fisse — non cambiano mai
-const W = 500;
-const H = 280;
+const W = 620;
+const H = 360;
 canvas.width  = W;
 canvas.height = H;
 
 // Centro del semicerchio: in basso al centro del canvas
-const CX = W / 2;   // 250
-const CY = H;       // 280 = fondo canvas
-const R  = H - 24;  // 256 = raggio
+const CX = W / 2;   // 310
+const CY = H;       // 360 = fondo canvas
+const R  = H - 24;  // 336 = raggio
 
 // ── CONVERSIONE ANGOLO → COORDINATE ──────────────────────────
 // Angolo radar: 0° = sinistra, 90° = sopra, 180° = destra
