@@ -18,60 +18,139 @@
     --red:       #f85149;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'JetBrains Mono',monospace; font-size:13px; min-height:100vh; display:flex; flex-direction:column; }
-  header { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid var(--border); background:var(--surface); }
+  html, body { height:100%; }
+
+  body {
+    background:var(--bg);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    overflow:hidden;
+  }
+
+  header {
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 24px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+  }
   .logo { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:500; letter-spacing:0.15em; }
   .logo-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); opacity:0.7; }
   .status { display:flex; align-items:center; gap:7px; font-size:11px; color:var(--text-dim); }
   .status-dot { width:7px; height:7px; border-radius:50%; background:var(--red); transition:background 0.4s; }
   .status-dot.on { background:var(--green); }
-  #cfgBanner { background:var(--surface); border-bottom:1px solid var(--border); padding:10px 24px; display:none; align-items:center; gap:12px; font-size:12px; color:var(--text-dim); }
-  #cfgBanner input { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:4px; width:300px; outline:none; }
+
+  #cfgBanner {
+    flex-shrink:0;
+    background:var(--surface);
+    border-bottom:1px solid var(--border);
+    padding:10px 24px;
+    display:none;
+    align-items:center;
+    gap:12px;
+    font-size:12px;
+    color:var(--text-dim);
+  }
+  #cfgBanner input {
+    background:var(--bg); border:1px solid var(--border); color:var(--text);
+    padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:12px;
+    border-radius:4px; width:300px; outline:none;
+  }
   #cfgBanner input:focus { border-color:var(--accent-dim); }
-  #cfgBanner button { background:var(--accent-dim); border:none; color:var(--accent); padding:6px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:4px; cursor:pointer; }
+  #cfgBanner button {
+    background:var(--accent-dim); border:none; color:var(--accent);
+    padding:6px 16px; font-family:'JetBrains Mono',monospace;
+    font-size:12px; border-radius:4px; cursor:pointer;
+  }
   #cfgBanner button:hover { background:var(--accent); color:var(--bg); }
-  .main { flex:1; display:flex; overflow:hidden; }
-  .radar-panel { flex:1; display:flex; align-items:center; justify-content:center; padding:32px; min-width:0; }
-  #radarCanvas { display:block; max-width:100%; }
-  .side { width:280px; flex-shrink:0; border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
-  .card { border-bottom:1px solid var(--border); padding:16px 18px; }
+
+  /* ── layout principale: occupa tutto lo spazio rimasto, NO scroll ── */
+  .main {
+    flex:1;
+    display:flex;
+    min-height:0;       /* fondamentale per flex con overflow */
+    overflow:hidden;
+  }
+
+  /* ── radar: centro fisso, non si ridimensiona ── */
+  .radar-panel {
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    padding:24px;
+  }
+  /* canvas con dimensioni fisse in px, niente % */
+  #radarCanvas { display:block; }
+
+  /* ── pannello destra: scroll interno, non cambia altezza ── */
+  .side {
+    width:280px;
+    flex-shrink:0;
+    border-left:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;    /* blocca crescita */
+  }
+  .card { flex-shrink:0; border-bottom:1px solid var(--border); padding:16px 18px; }
   .card-label { font-size:10px; letter-spacing:0.2em; color:var(--text-dim); margin-bottom:12px; }
   .det-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
   .det-key { font-size:11px; color:var(--text-dim); }
   .det-val { font-size:22px; font-weight:300; color:var(--accent); }
   .det-unit { font-size:11px; color:var(--text-dim); margin-left:3px; }
   .det-time { font-size:10px; color:var(--text-dim); margin-top:4px; }
-  .storico-wrap { flex:1; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+  .counter { flex-shrink:0; padding:6px 18px; font-size:10px; color:var(--text-dim); border-bottom:1px solid var(--border); }
+
+  /* storico: scroll interno, cresce solo qui */
+  .storico-wrap { flex:1; overflow-y:auto; min-height:0; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
   table { width:100%; border-collapse:collapse; }
   th { position:sticky; top:0; background:var(--surface); font-size:10px; letter-spacing:0.15em; color:var(--text-dim); padding:8px 18px; text-align:left; font-weight:400; border-bottom:1px solid var(--border); }
   td { padding:6px 18px; font-size:12px; border-bottom:1px solid rgba(42,52,65,0.5); }
   tr:hover td { background:rgba(88,166,200,0.04); }
   td.ang { color:var(--accent); }
   td.dist { color:var(--text-dim); }
-  .footer-btns { padding:12px 18px; display:flex; gap:8px; border-top:1px solid var(--border); }
+
+  .footer-btns { flex-shrink:0; padding:12px 18px; display:flex; gap:8px; border-top:1px solid var(--border); }
   .btn { flex:1; padding:7px; background:none; border:1px solid var(--border); color:var(--text-dim); font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:4px; transition:all 0.15s; }
   .btn:hover { border-color:var(--accent-dim); color:var(--accent); }
   .btn-danger:hover { border-color:var(--red); color:var(--red); }
-  .counter { padding:6px 18px 0; font-size:10px; color:var(--text-dim); }
 </style>
 </head>
 <body>
+
 <header>
   <div class="logo"><div class="logo-dot"></div>RADAR MINIATURA</div>
   <div class="status"><div class="status-dot" id="sDot"></div><span id="sTxt">offline</span></div>
 </header>
+
 <div id="cfgBanner">
   server ngrok:
   <input type="text" id="srvInput" placeholder="https://xxxx.ngrok-free.app">
   <button onclick="saveServer()">connetti</button>
 </div>
+
 <div class="main">
-  <div class="radar-panel"><canvas id="radarCanvas"></canvas></div>
+  <div class="radar-panel">
+    <canvas id="radarCanvas"></canvas>
+  </div>
   <div class="side">
     <div class="card">
       <div class="card-label">ULTIMO RILEVAMENTO</div>
-      <div class="det-row"><span class="det-key">angolo</span><span><span class="det-val" id="dAng">—</span><span class="det-unit">°</span></span></div>
-      <div class="det-row"><span class="det-key">distanza</span><span><span class="det-val" id="dDist">—</span><span class="det-unit">cm</span></span></div>
+      <div class="det-row">
+        <span class="det-key">angolo</span>
+        <span><span class="det-val" id="dAng">—</span><span class="det-unit">°</span></span>
+      </div>
+      <div class="det-row">
+        <span class="det-key">distanza</span>
+        <span><span class="det-val" id="dDist">—</span><span class="det-unit">cm</span></span>
+      </div>
       <div class="det-time" id="dTime">—</div>
     </div>
     <div class="counter" id="counter">0 rilevamenti</div>
@@ -87,103 +166,225 @@
     </div>
   </div>
 </div>
+
 <script>
+// ── CANVAS SETUP ─────────────────────────────────────────────
 const canvas = document.getElementById('radarCanvas');
-const ctx = canvas.getContext('2d');
-const W = 520, H = 290;
-canvas.width = W; canvas.height = H;
-const CX = W/2, CY = H, R = H - 20;
+const ctx    = canvas.getContext('2d');
 
-function toRad(deg) { return Math.PI - (deg/180)*Math.PI; }
+// Dimensioni fisse — non cambiano mai
+const W = 500;
+const H = 280;
+canvas.width  = W;
+canvas.height = H;
 
-function polarToXY(deg, cm) {
-  const r = (Math.min(cm,100)/100)*R;
-  const a = toRad(deg);
-  return { x: CX + r*Math.cos(a), y: CY + r*Math.sin(a) };
+// Centro del semicerchio: in basso al centro del canvas
+const CX = W / 2;   // 250
+const CY = H;       // 280 = fondo canvas
+const R  = H - 24;  // 256 = raggio
+
+// ── CONVERSIONE ANGOLO → COORDINATE ──────────────────────────
+// Angolo radar: 0° = sinistra, 90° = sopra, 180° = destra
+// In canvas: y cresce verso il basso, quindi il semicerchio
+// apre verso l'ALTO sottraendo la componente y
+function polarToXY(angleDeg, distCm) {
+  // Mappa 0°→sin=0 left, 90°→top, 180°→sin=0 right
+  const rad = Math.PI - (angleDeg / 180) * Math.PI;
+  const r   = (Math.min(distCm, 100) / 100) * R;
+  return {
+    x: CX + r * Math.cos(rad),
+    y: CY - r * Math.sin(rad)   // ← NEGATIVO: va verso l'alto ✓
+  };
 }
 
-const pts = [];
-let sweep = 90;
+// ── STATO ────────────────────────────────────────────────────
+const pts  = [];   // { x, y, alpha }
+let   sweep = 90;  // gradi
 
+// ── DRAW LOOP ────────────────────────────────────────────────
 function draw() {
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#161b22'; ctx.fillRect(0,0,W,H);
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#161b22';
+  ctx.fillRect(0, 0, W, H);
 
-  // Rings
-  [25,50,75,100].forEach(d => {
-    const rr = (d/100)*R;
-    ctx.beginPath(); ctx.arc(CX,CY,rr,Math.PI,2*Math.PI);
-    ctx.strokeStyle='#2a3441'; ctx.lineWidth=0.8; ctx.stroke();
-    ctx.fillStyle='#3a4756'; ctx.font='10px JetBrains Mono';
-    ctx.textAlign='left'; ctx.fillText(d+'cm', CX+rr+3, CY-3);
+  // Cerchi concentrici distanza
+  [25, 50, 75, 100].forEach(d => {
+    const rr = (d / 100) * R;
+    ctx.beginPath();
+    ctx.arc(CX, CY, rr, Math.PI, 2 * Math.PI);   // semicerchio superiore
+    ctx.strokeStyle = '#2a3441';
+    ctx.lineWidth   = 0.8;
+    ctx.stroke();
+    ctx.fillStyle  = '#3a4756';
+    ctx.font       = '10px JetBrains Mono';
+    ctx.textAlign  = 'left';
+    ctx.fillText(d + 'cm', CX + rr + 3, CY - 3);
   });
 
-  // Angle lines
-  for(let a=0;a<=180;a+=30){
-    const r=toRad(a);
-    ctx.beginPath(); ctx.moveTo(CX,CY);
-    ctx.lineTo(CX+R*Math.cos(r), CY+R*Math.sin(r));
-    ctx.strokeStyle='#2a3441'; ctx.lineWidth=0.6; ctx.stroke();
-    ctx.fillStyle='#3a4756'; ctx.font='10px JetBrains Mono'; ctx.textAlign='center';
-    ctx.fillText(a+'°', CX+(R+16)*Math.cos(r), CY+(R+16)*Math.sin(r));
+  // Linee angolari ogni 30°
+  for (let a = 0; a <= 180; a += 30) {
+    const rad = Math.PI - (a / 180) * Math.PI;
+    const ex  = CX + R * Math.cos(rad);
+    const ey  = CY - R * Math.sin(rad);  // ← negativo, va in alto
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(ex, ey);
+    ctx.strokeStyle = '#2a3441';
+    ctx.lineWidth   = 0.6;
+    ctx.stroke();
+    // Etichette
+    const lx = CX + (R + 18) * Math.cos(rad);
+    const ly = CY - (R + 18) * Math.sin(rad);
+    ctx.fillStyle  = '#3a4756';
+    ctx.font       = '10px JetBrains Mono';
+    ctx.textAlign  = 'center';
+    ctx.fillText(a + '°', lx, ly);
   }
 
-  // Base line
-  ctx.beginPath(); ctx.moveTo(CX-R-10,CY); ctx.lineTo(CX+R+10,CY);
-  ctx.strokeStyle='#2a3441'; ctx.lineWidth=0.8; ctx.stroke();
+  // Linea base
+  ctx.beginPath();
+  ctx.moveTo(CX - R - 12, CY);
+  ctx.lineTo(CX + R + 12, CY);
+  ctx.strokeStyle = '#2a3441';
+  ctx.lineWidth   = 0.8;
+  ctx.stroke();
 
-  // Sweep fan
-  const sr=toRad(sweep), f1=toRad(sweep-8), f2=toRad(sweep+8);
-  ctx.beginPath(); ctx.moveTo(CX,CY);
-  ctx.arc(CX,CY,R,Math.min(f1,f2),Math.max(f1,f2));
-  ctx.closePath(); ctx.fillStyle='rgba(58,166,200,0.07)'; ctx.fill();
+  // Sweep — settore colorato
+  const sr  = Math.PI - (sweep / 180) * Math.PI;
+  const fan = 6 * (Math.PI / 180);
+  ctx.beginPath();
+  ctx.moveTo(CX, CY);
+  ctx.arc(CX, CY, R, sr - fan, sr + fan);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(58,166,200,0.08)';
+  ctx.fill();
 
-  // Sweep line
-  ctx.beginPath(); ctx.moveTo(CX,CY);
-  ctx.lineTo(CX+R*Math.cos(sr), CY+R*Math.sin(sr));
-  ctx.strokeStyle='rgba(88,166,200,0.6)'; ctx.lineWidth=1.5; ctx.stroke();
+  // Sweep — linea
+  ctx.beginPath();
+  ctx.moveTo(CX, CY);
+  ctx.lineTo(CX + R * Math.cos(sr), CY - R * Math.sin(sr));
+  ctx.strokeStyle = 'rgba(88,166,200,0.65)';
+  ctx.lineWidth   = 1.5;
+  ctx.stroke();
 
-  // Points
-  for(let i=pts.length-1;i>=0;i--){
-    const p=pts[i];
-    if(p.alpha<=0){pts.splice(i,1);continue;}
-    ctx.beginPath(); ctx.arc(p.x,p.y,7,0,2*Math.PI);
-    ctx.fillStyle=`rgba(88,166,200,${p.alpha*0.15})`; ctx.fill();
-    ctx.beginPath(); ctx.arc(p.x,p.y,3,0,2*Math.PI);
-    ctx.fillStyle=`rgba(88,166,200,${p.alpha})`; ctx.fill();
-    p.alpha-=0.0015;
+  // Punti rilevati con fade
+  for (let i = pts.length - 1; i >= 0; i--) {
+    const p = pts[i];
+    if (p.alpha <= 0) { pts.splice(i, 1); continue; }
+
+    // Alone
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(88,166,200,${p.alpha * 0.12})`;
+    ctx.fill();
+
+    // Punto
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3.5, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(88,166,200,${p.alpha})`;
+    ctx.fill();
+
+    p.alpha -= 0.0012;
   }
 
-  // Center dot
-  ctx.beginPath(); ctx.arc(CX,CY,4,0,2*Math.PI);
-  ctx.fillStyle='#58a6c8'; ctx.fill();
+  // Centro
+  ctx.beginPath();
+  ctx.arc(CX, CY, 4, 0, 2 * Math.PI);
+  ctx.fillStyle = '#58a6c8';
+  ctx.fill();
 
-  sweep=(sweep+0.2)%180;
+  sweep = (sweep + 0.25) % 180;
   requestAnimationFrame(draw);
 }
 draw();
 
-function addPoint(deg,cm){ sweep=deg; const {x,y}=polarToXY(deg,cm); pts.push({x,y,alpha:1.0}); }
-
-function getServer(){ const p=new URLSearchParams(location.search); if(p.get('server'))localStorage.setItem('rs',p.get('server')); return localStorage.getItem('rs'); }
-function saveServer(){ const v=document.getElementById('srvInput').value.trim().replace(/\/$/,''); if(!v)return; localStorage.setItem('rs',v); document.getElementById('cfgBanner').style.display='none'; init(); }
-
-let ws, n=0;
-function connectWS(srv){
-  ws=new WebSocket(srv.replace(/^http/,'ws'));
-  ws.onopen=()=>{ document.getElementById('sDot').classList.add('on'); document.getElementById('sTxt').textContent='online · '+srv.replace('https://',''); };
-  ws.onmessage=e=>{ const d=JSON.parse(e.data); addPoint(d.angolo,d.distanza); updateLast(d); addRow(d,true); n++; document.getElementById('counter').textContent=n+' rilevamenti'; };
-  ws.onclose=()=>{ document.getElementById('sDot').classList.remove('on'); document.getElementById('sTxt').textContent='offline — riconnessione...'; setTimeout(()=>connectWS(srv),4000); };
-  ws.onerror=()=>ws.close();
+function addPoint(angleDeg, distCm) {
+  sweep = angleDeg;
+  const { x, y } = polarToXY(angleDeg, distCm);
+  pts.push({ x, y, alpha: 1.0 });
 }
 
-function updateLast(d){ document.getElementById('dAng').textContent=parseFloat(d.angolo).toFixed(1); document.getElementById('dDist').textContent=d.distanza; document.getElementById('dTime').textContent=new Date(d.timestamp).toLocaleTimeString('it-IT'); }
-function addRow(d,pre){ const tr=document.createElement('tr'); tr.innerHTML=`<td>${new Date(d.timestamp).toLocaleTimeString('it-IT')}</td><td class="ang">${parseFloat(d.angolo).toFixed(1)}°</td><td class="dist">${d.distanza} cm</td>`; const tb=document.getElementById('tbody'); if(pre)tb.insertBefore(tr,tb.firstChild); else tb.appendChild(tr); }
+// ── SERVER CONFIG ────────────────────────────────────────────
+function getServer() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('server')) localStorage.setItem('rs', p.get('server'));
+  return localStorage.getItem('rs');
+}
+function saveServer() {
+  const v = document.getElementById('srvInput').value.trim().replace(/\/$/, '');
+  if (!v) return;
+  localStorage.setItem('rs', v);
+  document.getElementById('cfgBanner').style.display = 'none';
+  init();
+}
 
-async function loadHistory(){ const srv=getServer(); if(!srv)return; try{ const r=await fetch(srv+'/api/storico?limit=100'); const data=await r.json(); document.getElementById('tbody').innerHTML=''; data.forEach(d=>addRow(d,false)); data.slice(0,50).forEach(d=>addPoint(d.angolo,d.distanza)); n=data.length; document.getElementById('counter').textContent=n+' rilevamenti'; }catch(e){console.error(e);} }
-async function clearHistory(){ const srv=getServer(); if(!srv||!confirm('Cancellare?'))return; await fetch(srv+'/api/storico',{method:'DELETE'}); document.getElementById('tbody').innerHTML=''; pts.length=0; n=0; document.getElementById('counter').textContent='0 rilevamenti'; }
+// ── WEBSOCKET ────────────────────────────────────────────────
+let ws, n = 0;
+function connectWS(srv) {
+  ws = new WebSocket(srv.replace(/^http/, 'ws'));
+  ws.onopen = () => {
+    document.getElementById('sDot').classList.add('on');
+    document.getElementById('sTxt').textContent = 'online · ' + srv.replace('https://', '');
+  };
+  ws.onmessage = e => {
+    const d = JSON.parse(e.data);
+    addPoint(d.angolo, d.distanza);
+    updateLast(d);
+    addRow(d, true);
+    n++;
+    document.getElementById('counter').textContent = n + ' rilevamenti';
+  };
+  ws.onclose = () => {
+    document.getElementById('sDot').classList.remove('on');
+    document.getElementById('sTxt').textContent = 'offline — riconnessione...';
+    setTimeout(() => connectWS(srv), 4000);
+  };
+  ws.onerror = () => ws.close();
+}
 
-function init(){ const srv=getServer(); if(!srv){ document.getElementById('cfgBanner').style.display='flex'; return; } connectWS(srv); loadHistory(); }
+// ── UI ───────────────────────────────────────────────────────
+function updateLast(d) {
+  document.getElementById('dAng').textContent  = parseFloat(d.angolo).toFixed(1);
+  document.getElementById('dDist').textContent = d.distanza;
+  document.getElementById('dTime').textContent = new Date(d.timestamp).toLocaleTimeString('it-IT');
+}
+function addRow(d, pre) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${new Date(d.timestamp).toLocaleTimeString('it-IT')}</td>
+    <td class="ang">${parseFloat(d.angolo).toFixed(1)}°</td>
+    <td class="dist">${d.distanza} cm</td>`;
+  const tb = document.getElementById('tbody');
+  if (pre) tb.insertBefore(tr, tb.firstChild);
+  else     tb.appendChild(tr);
+}
+async function loadHistory() {
+  const srv = getServer(); if (!srv) return;
+  try {
+    const r    = await fetch(srv + '/api/storico?limit=100');
+    const data = await r.json();
+    document.getElementById('tbody').innerHTML = '';
+    data.forEach(d => addRow(d, false));
+    data.slice(0, 50).forEach(d => addPoint(d.angolo, d.distanza));
+    n = data.length;
+    document.getElementById('counter').textContent = n + ' rilevamenti';
+  } catch(e) { console.error(e); }
+}
+async function clearHistory() {
+  const srv = getServer();
+  if (!srv || !confirm('Cancellare tutto lo storico?')) return;
+  await fetch(srv + '/api/storico', { method: 'DELETE' });
+  document.getElementById('tbody').innerHTML = '';
+  pts.length = 0; n = 0;
+  document.getElementById('counter').textContent = '0 rilevamenti';
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+function init() {
+  const srv = getServer();
+  if (!srv) { document.getElementById('cfgBanner').style.display = 'flex'; return; }
+  connectWS(srv);
+  loadHistory();
+}
 init();
 </script>
 </body>
