@@ -75,7 +75,7 @@
     flex:1;
     display:flex;
     min-height:0;       /* fondamentale per flex con overflow */
-    overflow:hidden;
+    overflow:visible;
   }
 
   /* ── radar: centro fisso, non si ridimensiona ── */
@@ -179,15 +179,15 @@ const canvas = document.getElementById('radarCanvas');
 const ctx    = canvas.getContext('2d');
 
 // Dimensioni fisse — non cambiano mai
-const W = 760;
-const H = 440;
+const W = 1200;
+const H = 700;
 canvas.width  = W;
 canvas.height = H;
 
 // Centro del semicerchio: in basso al centro del canvas
-const CX = W / 2;   // 380
-const CY = H;       // 440 = fondo canvas
-const R  = H - 24;  // 416 = raggio
+const CX = W / 2;
+const CY = H;
+const R  = Math.min(W / 2 - 16, H - 24);
 
 // ── CONVERSIONE ANGOLO → COORDINATE ──────────────────────────
 // Angolo radar: 0° = sinistra, 90° = sopra, 180° = destra
