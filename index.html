@@ -3,326 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Radar Militare</title>
+<title>Radar Miniatura</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg:        #161b22;
+    --surface:   #1e2530;
+    --border:    #2a3441;
+    --accent:    #58a6c8;
+    --accent-dim:#2d5a73;
+    --text:      #c9d1d9;
+    --text-dim:  #6e7681;
+    --green:     #3fb950;
+    --red:       #f85149;
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:#000; color:#00ff41; font-family:'Courier New',monospace; min-height:100vh; }
-
-  header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:12px 24px; border-bottom:1px solid #003300;
-  }
-  .title { font-size:1.1rem; letter-spacing:0.3em; font-weight:bold; }
-  .header-right { display:flex; align-items:center; gap:16px; }
-  .status { font-size:0.75rem; letter-spacing:0.1em; display:flex; align-items:center; gap:8px; }
-  .dot { width:8px;height:8px;border-radius:50%;background:#ff0000;animation:blink 1s infinite;flex-shrink:0; }
-  .dot.online { background:#00ff41;animation:none; }
-  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
-
-  /* Tasto impostazioni */
-  .btn-settings {
-    background:none; border:1px solid #003300; color:#005500;
-    font-family:'Courier New',monospace; font-size:0.8rem;
-    padding:6px 12px; cursor:pointer; letter-spacing:0.1em;
-    transition: all .2s;
-  }
-  .btn-settings:hover { border-color:#00ff41; color:#00ff41; }
-
-  /* Modal impostazioni */
-  .modal-overlay {
-    display:none; position:fixed; inset:0;
-    background:rgba(0,0,0,0.85); z-index:100;
-    align-items:center; justify-content:center;
-  }
-  .modal-overlay.open { display:flex; }
-  .modal {
-    background:#000; border:1px solid #00ff41;
-    padding:28px; width:480px; max-width:90vw;
-  }
-  .modal-title {
-    font-size:0.8rem; letter-spacing:0.2em; color:#00ff41;
-    margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid #003300;
-  }
-  .modal label { font-size:0.75rem; color:#005500; display:block; margin-bottom:6px; letter-spacing:0.1em; }
-  .modal input {
-    width:100%; background:#000; border:1px solid #003300;
-    color:#00ff41; padding:10px 12px; font-family:'Courier New',monospace;
-    font-size:0.85rem; margin-bottom:16px; outline:none;
-  }
-  .modal input:focus { border-color:#00ff41; }
-  .modal-hint { font-size:0.7rem; color:#005500; margin-top:-10px; margin-bottom:16px; }
-  .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
-  .btn { padding:8px 18px; background:none; border:1px solid #003300; color:#00ff41; font-family:'Courier New',monospace; font-size:0.75rem; letter-spacing:0.1em; cursor:pointer; }
-  .btn:hover { background:#001100; }
-  .btn-primary { border-color:#00ff41; }
-  .btn-primary:hover { background:#003300; }
-  .btn-danger { border-color:#330000; color:#ff3333; }
-  .btn-danger:hover { background:#110000; }
-
-  .main { display:flex; gap:24px; padding:24px; flex-wrap:wrap; justify-content:center; }
-  #radarCanvas { display:block; border:1px solid #003300; max-width:100%; }
-
-  .panel { flex:1; min-width:280px; max-width:400px; display:flex; flex-direction:column; gap:16px; }
-  .box { border:1px solid #003300; padding:16px; background:#000; }
-  .box-title {
-    font-size:0.7rem; letter-spacing:0.2em; color:#005500;
-    margin-bottom:12px; border-bottom:1px solid #003300; padding-bottom:6px;
-  }
-  .last-data { font-size:1.4rem; letter-spacing:0.1em; }
-  .last-data span { color:#00ff41; }
-  .last-label { font-size:0.7rem; color:#005500; margin-top:2px; }
-
-  .storico-wrap { max-height:240px; overflow-y:auto; }
-  .storico-wrap::-webkit-scrollbar { width:4px; }
-  .storico-wrap::-webkit-scrollbar-thumb { background:#003300; }
-  table { width:100%; border-collapse:collapse; font-size:0.8rem; }
-  th { color:#005500; font-size:0.65rem; letter-spacing:0.15em; padding:4px 8px; border-bottom:1px solid #003300; text-align:left; }
-  td { padding:5px 8px; border-bottom:1px solid #001100; }
-  tr:hover td { background:#001100; }
-
-  .counter { font-size:0.7rem; color:#005500; margin-top:8px; }
-  .table-actions { display:flex; justify-content:flex-end; }
+  body { background:var(--bg); color:var(--text); font-family:'JetBrains Mono',monospace; font-size:13px; min-height:100vh; display:flex; flex-direction:column; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid var(--border); background:var(--surface); }
+  .logo { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:500; letter-spacing:0.15em; }
+  .logo-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); opacity:0.7; }
+  .status { display:flex; align-items:center; gap:7px; font-size:11px; color:var(--text-dim); }
+  .status-dot { width:7px; height:7px; border-radius:50%; background:var(--red); transition:background 0.4s; }
+  .status-dot.on { background:var(--green); }
+  #cfgBanner { background:var(--surface); border-bottom:1px solid var(--border); padding:10px 24px; display:none; align-items:center; gap:12px; font-size:12px; color:var(--text-dim); }
+  #cfgBanner input { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:4px; width:300px; outline:none; }
+  #cfgBanner input:focus { border-color:var(--accent-dim); }
+  #cfgBanner button { background:var(--accent-dim); border:none; color:var(--accent); padding:6px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:4px; cursor:pointer; }
+  #cfgBanner button:hover { background:var(--accent); color:var(--bg); }
+  .main { flex:1; display:flex; overflow:hidden; }
+  .radar-panel { flex:1; display:flex; align-items:center; justify-content:center; padding:32px; min-width:0; }
+  #radarCanvas { display:block; max-width:100%; }
+  .side { width:280px; flex-shrink:0; border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+  .card { border-bottom:1px solid var(--border); padding:16px 18px; }
+  .card-label { font-size:10px; letter-spacing:0.2em; color:var(--text-dim); margin-bottom:12px; }
+  .det-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .det-key { font-size:11px; color:var(--text-dim); }
+  .det-val { font-size:22px; font-weight:300; color:var(--accent); }
+  .det-unit { font-size:11px; color:var(--text-dim); margin-left:3px; }
+  .det-time { font-size:10px; color:var(--text-dim); margin-top:4px; }
+  .storico-wrap { flex:1; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+  table { width:100%; border-collapse:collapse; }
+  th { position:sticky; top:0; background:var(--surface); font-size:10px; letter-spacing:0.15em; color:var(--text-dim); padding:8px 18px; text-align:left; font-weight:400; border-bottom:1px solid var(--border); }
+  td { padding:6px 18px; font-size:12px; border-bottom:1px solid rgba(42,52,65,0.5); }
+  tr:hover td { background:rgba(88,166,200,0.04); }
+  td.ang { color:var(--accent); }
+  td.dist { color:var(--text-dim); }
+  .footer-btns { padding:12px 18px; display:flex; gap:8px; border-top:1px solid var(--border); }
+  .btn { flex:1; padding:7px; background:none; border:1px solid var(--border); color:var(--text-dim); font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:4px; transition:all 0.15s; }
+  .btn:hover { border-color:var(--accent-dim); color:var(--accent); }
+  .btn-danger:hover { border-color:var(--red); color:var(--red); }
+  .counter { padding:6px 18px 0; font-size:10px; color:var(--text-dim); }
 </style>
 </head>
 <body>
-
 <header>
-  <div class="title">⬡ SISTEMA RADAR MINIATURA</div>
-  <div class="header-right">
-    <div class="status">
-      <div class="dot" id="statusDot"></div>
-      <span id="statusText">OFFLINE</span>
-    </div>
-    <button class="btn-settings" onclick="openSettings()">⚙ SERVER</button>
-  </div>
+  <div class="logo"><div class="logo-dot"></div>RADAR MINIATURA</div>
+  <div class="status"><div class="status-dot" id="sDot"></div><span id="sTxt">offline</span></div>
 </header>
-
-<!-- MODAL IMPOSTAZIONI -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeIfOutside(event)">
-  <div class="modal">
-    <div class="modal-title">⚙ CONFIGURAZIONE SERVER</div>
-    <label>URL SERVER NGROK</label>
-    <input type="text" id="serverInput" placeholder="https://il-tuo-dominio.ngrok-free.app">
-    <div class="modal-hint">Trovalo su http://localhost:4040 mentre Docker è avviato</div>
-    <div class="modal-actions">
-      <button class="btn btn-danger" onclick="disconnetti()">DISCONNETTI</button>
-      <button class="btn" onclick="closeSettings()">ANNULLA</button>
-      <button class="btn btn-primary" onclick="salvaServer()">CONNETTI</button>
-    </div>
-  </div>
+<div id="cfgBanner">
+  server ngrok:
+  <input type="text" id="srvInput" placeholder="https://xxxx.ngrok-free.app">
+  <button onclick="saveServer()">connetti</button>
 </div>
-
 <div class="main">
-
-  <canvas id="radarCanvas" width="480" height="480"></canvas>
-
-  <div class="panel">
-
-    <div class="box">
-      <div class="box-title">ULTIMO RILEVAMENTO</div>
-      <div class="last-data">ANG: <span id="lastAng">---</span>°</div>
-      <div class="last-label">angolazione</div>
-      <div class="last-data" style="margin-top:8px">DST: <span id="lastDist">---</span> cm</div>
-      <div class="last-label">distanza</div>
-      <div style="margin-top:10px;font-size:0.7rem;color:#005500" id="lastTime">--:--:--</div>
+  <div class="radar-panel"><canvas id="radarCanvas"></canvas></div>
+  <div class="side">
+    <div class="card">
+      <div class="card-label">ULTIMO RILEVAMENTO</div>
+      <div class="det-row"><span class="det-key">angolo</span><span><span class="det-val" id="dAng">—</span><span class="det-unit">°</span></span></div>
+      <div class="det-row"><span class="det-key">distanza</span><span><span class="det-val" id="dDist">—</span><span class="det-unit">cm</span></span></div>
+      <div class="det-time" id="dTime">—</div>
     </div>
-
-    <div class="box" style="flex:1">
-      <div class="box-title" style="display:flex;justify-content:space-between;align-items:center">
-        <span>STORICO RILEVAMENTI</span>
-        <div class="table-actions">
-          <button class="btn btn-danger" style="font-size:0.7rem;padding:4px 10px" onclick="cancellaStorico()">CANCELLA</button>
-        </div>
-      </div>
-      <div class="storico-wrap">
-        <table>
-          <thead><tr><th>ORA</th><th>ANG</th><th>DIST</th></tr></thead>
-          <tbody id="storicoBody"></tbody>
-        </table>
-      </div>
-      <div class="counter" id="counter">0 rilevamenti</div>
+    <div class="counter" id="counter">0 rilevamenti</div>
+    <div class="storico-wrap">
+      <table>
+        <thead><tr><th>ORA</th><th>ANG</th><th>DIST</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
     </div>
-
-    <button class="btn" onclick="caricaStorico()">↺ RICARICA STORICO</button>
-
+    <div class="footer-btns">
+      <button class="btn" onclick="loadHistory()">↺ storico</button>
+      <button class="btn btn-danger" onclick="clearHistory()">✕ cancella</button>
+    </div>
   </div>
 </div>
-
 <script>
-// ─── RADAR CANVAS ─────────────────────────────
 const canvas = document.getElementById('radarCanvas');
-const ctx    = canvas.getContext('2d');
-const CX     = canvas.width / 2;
-const CY     = canvas.height;
-const R      = canvas.height - 20;
-const punti  = [];
-let   sweepAngle = 0;
+const ctx = canvas.getContext('2d');
+const W = 520, H = 290;
+canvas.width = W; canvas.height = H;
+const CX = W/2, CY = H, R = H - 20;
 
-function gradToRad(deg) { return Math.PI - (deg * Math.PI / 180); }
+function toRad(deg) { return Math.PI - (deg/180)*Math.PI; }
 
-function drawRadar() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+function polarToXY(deg, cm) {
+  const r = (Math.min(cm,100)/100)*R;
+  const a = toRad(deg);
+  return { x: CX + r*Math.cos(a), y: CY + r*Math.sin(a) };
+}
 
-  [0.25, 0.5, 0.75, 1.0].forEach(f => {
-    ctx.strokeStyle = '#003300'; ctx.lineWidth = 0.5;
-    ctx.beginPath(); ctx.arc(CX, CY, R*f, Math.PI, 2*Math.PI); ctx.stroke();
-    ctx.fillStyle = '#005500'; ctx.font = '10px Courier New'; ctx.textAlign = 'left';
-    ctx.fillText(`${Math.round(f*100)}cm`, CX + R*f + 3, CY - 3);
+const pts = [];
+let sweep = 90;
+
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#161b22'; ctx.fillRect(0,0,W,H);
+
+  // Rings
+  [25,50,75,100].forEach(d => {
+    const rr = (d/100)*R;
+    ctx.beginPath(); ctx.arc(CX,CY,rr,Math.PI,2*Math.PI);
+    ctx.strokeStyle='#2a3441'; ctx.lineWidth=0.8; ctx.stroke();
+    ctx.fillStyle='#3a4756'; ctx.font='10px JetBrains Mono';
+    ctx.textAlign='left'; ctx.fillText(d+'cm', CX+rr+3, CY-3);
   });
 
-  for (let a = 0; a <= 180; a += 30) {
-    const rad = gradToRad(a);
-    ctx.strokeStyle = '#002200'; ctx.lineWidth = 0.5;
-    ctx.beginPath(); ctx.moveTo(CX, CY);
-    ctx.lineTo(CX + R*Math.cos(rad), CY + R*Math.sin(rad)); ctx.stroke();
-    ctx.fillStyle = '#005500'; ctx.font = '10px Courier New'; ctx.textAlign = 'center';
-    ctx.fillText(`${a}°`, CX+(R+14)*Math.cos(rad), CY+(R+14)*Math.sin(rad));
+  // Angle lines
+  for(let a=0;a<=180;a+=30){
+    const r=toRad(a);
+    ctx.beginPath(); ctx.moveTo(CX,CY);
+    ctx.lineTo(CX+R*Math.cos(r), CY+R*Math.sin(r));
+    ctx.strokeStyle='#2a3441'; ctx.lineWidth=0.6; ctx.stroke();
+    ctx.fillStyle='#3a4756'; ctx.font='10px JetBrains Mono'; ctx.textAlign='center';
+    ctx.fillText(a+'°', CX+(R+16)*Math.cos(r), CY+(R+16)*Math.sin(r));
   }
 
-  punti.forEach(p => {
-    const rad = gradToRad(p.angolo);
-    const pr  = (Math.min(p.distanza, 100) / 100) * R;
-    const px  = CX + pr * Math.cos(rad);
-    const py  = CY + pr * Math.sin(rad);
-    ctx.beginPath(); ctx.arc(px, py, 4, 0, 2*Math.PI);
-    ctx.fillStyle = `rgba(0,255,65,${p.alpha})`; ctx.fill();
-    ctx.beginPath(); ctx.arc(px, py, 9, 0, 2*Math.PI);
-    ctx.strokeStyle = `rgba(0,255,65,${p.alpha*0.25})`; ctx.lineWidth = 1; ctx.stroke();
-    p.alpha -= 0.002;
-  });
-  for (let i = punti.length-1; i >= 0; i--) {
-    if (punti[i].alpha <= 0) punti.splice(i, 1);
+  // Base line
+  ctx.beginPath(); ctx.moveTo(CX-R-10,CY); ctx.lineTo(CX+R+10,CY);
+  ctx.strokeStyle='#2a3441'; ctx.lineWidth=0.8; ctx.stroke();
+
+  // Sweep fan
+  const sr=toRad(sweep), f1=toRad(sweep-8), f2=toRad(sweep+8);
+  ctx.beginPath(); ctx.moveTo(CX,CY);
+  ctx.arc(CX,CY,R,Math.min(f1,f2),Math.max(f1,f2));
+  ctx.closePath(); ctx.fillStyle='rgba(58,166,200,0.07)'; ctx.fill();
+
+  // Sweep line
+  ctx.beginPath(); ctx.moveTo(CX,CY);
+  ctx.lineTo(CX+R*Math.cos(sr), CY+R*Math.sin(sr));
+  ctx.strokeStyle='rgba(88,166,200,0.6)'; ctx.lineWidth=1.5; ctx.stroke();
+
+  // Points
+  for(let i=pts.length-1;i>=0;i--){
+    const p=pts[i];
+    if(p.alpha<=0){pts.splice(i,1);continue;}
+    ctx.beginPath(); ctx.arc(p.x,p.y,7,0,2*Math.PI);
+    ctx.fillStyle=`rgba(88,166,200,${p.alpha*0.15})`; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x,p.y,3,0,2*Math.PI);
+    ctx.fillStyle=`rgba(88,166,200,${p.alpha})`; ctx.fill();
+    p.alpha-=0.0015;
   }
 
-  const swRad = gradToRad(sweepAngle);
-  const g = ctx.createLinearGradient(CX, CY, CX+R*Math.cos(swRad), CY+R*Math.sin(swRad));
-  g.addColorStop(0, 'rgba(0,255,65,0)'); g.addColorStop(1, 'rgba(0,255,65,0.9)');
-  ctx.beginPath(); ctx.moveTo(CX, CY);
-  ctx.lineTo(CX+R*Math.cos(swRad), CY+R*Math.sin(swRad));
-  ctx.strokeStyle = g; ctx.lineWidth = 2; ctx.stroke();
+  // Center dot
+  ctx.beginPath(); ctx.arc(CX,CY,4,0,2*Math.PI);
+  ctx.fillStyle='#58a6c8'; ctx.fill();
 
-  sweepAngle = (sweepAngle + 0.3) % 180;
-  requestAnimationFrame(drawRadar);
+  sweep=(sweep+0.2)%180;
+  requestAnimationFrame(draw);
 }
-drawRadar();
+draw();
 
-function addPoint(angolo, distanza) {
-  sweepAngle = angolo;
-  punti.push({ angolo, distanza, alpha: 1.0 });
-}
+function addPoint(deg,cm){ sweep=deg; const {x,y}=polarToXY(deg,cm); pts.push({x,y,alpha:1.0}); }
 
-// ─── SETTINGS MODAL ───────────────────────────
-function openSettings() {
-  const url = localStorage.getItem('radarServer') || '';
-  document.getElementById('serverInput').value = url;
-  document.getElementById('modalOverlay').classList.add('open');
-}
-function closeSettings() {
-  document.getElementById('modalOverlay').classList.remove('open');
-}
-function closeIfOutside(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeSettings();
-}
-function salvaServer() {
-  const val = document.getElementById('serverInput').value.trim().replace(/\/$/, '');
-  if (!val) return;
-  localStorage.setItem('radarServer', val);
-  closeSettings();
-  // riconnetti con nuovo URL
-  if (ws) ws.close();
-  setTimeout(() => connectWS(val), 500);
-  caricaStorico();
-}
-function disconnetti() {
-  localStorage.removeItem('radarServer');
-  if (ws) ws.close();
-  document.getElementById('statusDot').className = 'dot';
-  document.getElementById('statusText').textContent = 'OFFLINE';
-  closeSettings();
+function getServer(){ const p=new URLSearchParams(location.search); if(p.get('server'))localStorage.setItem('rs',p.get('server')); return localStorage.getItem('rs'); }
+function saveServer(){ const v=document.getElementById('srvInput').value.trim().replace(/\/$/,''); if(!v)return; localStorage.setItem('rs',v); document.getElementById('cfgBanner').style.display='none'; init(); }
+
+let ws, n=0;
+function connectWS(srv){
+  ws=new WebSocket(srv.replace(/^http/,'ws'));
+  ws.onopen=()=>{ document.getElementById('sDot').classList.add('on'); document.getElementById('sTxt').textContent='online · '+srv.replace('https://',''); };
+  ws.onmessage=e=>{ const d=JSON.parse(e.data); addPoint(d.angolo,d.distanza); updateLast(d); addRow(d,true); n++; document.getElementById('counter').textContent=n+' rilevamenti'; };
+  ws.onclose=()=>{ document.getElementById('sDot').classList.remove('on'); document.getElementById('sTxt').textContent='offline — riconnessione...'; setTimeout(()=>connectWS(srv),4000); };
+  ws.onerror=()=>ws.close();
 }
 
-// ─── WEBSOCKET ────────────────────────────────
-let ws;
-let totalCount = 0;
+function updateLast(d){ document.getElementById('dAng').textContent=parseFloat(d.angolo).toFixed(1); document.getElementById('dDist').textContent=d.distanza; document.getElementById('dTime').textContent=new Date(d.timestamp).toLocaleTimeString('it-IT'); }
+function addRow(d,pre){ const tr=document.createElement('tr'); tr.innerHTML=`<td>${new Date(d.timestamp).toLocaleTimeString('it-IT')}</td><td class="ang">${parseFloat(d.angolo).toFixed(1)}°</td><td class="dist">${d.distanza} cm</td>`; const tb=document.getElementById('tbody'); if(pre)tb.insertBefore(tr,tb.firstChild); else tb.appendChild(tr); }
 
-function connectWS(serverUrl) {
-  const wsUrl = serverUrl.replace(/^https/, 'wss').replace(/^http/, 'ws');
-  try { ws = new WebSocket(wsUrl); } catch(e) { return; }
+async function loadHistory(){ const srv=getServer(); if(!srv)return; try{ const r=await fetch(srv+'/api/storico?limit=100'); const data=await r.json(); document.getElementById('tbody').innerHTML=''; data.forEach(d=>addRow(d,false)); data.slice(0,50).forEach(d=>addPoint(d.angolo,d.distanza)); n=data.length; document.getElementById('counter').textContent=n+' rilevamenti'; }catch(e){console.error(e);} }
+async function clearHistory(){ const srv=getServer(); if(!srv||!confirm('Cancellare?'))return; await fetch(srv+'/api/storico',{method:'DELETE'}); document.getElementById('tbody').innerHTML=''; pts.length=0; n=0; document.getElementById('counter').textContent='0 rilevamenti'; }
 
-  ws.onopen = () => {
-    document.getElementById('statusDot').className = 'dot online';
-    document.getElementById('statusText').textContent =
-      'ONLINE — ' + serverUrl.replace('https://', '');
-  };
-  ws.onmessage = e => {
-    const d = JSON.parse(e.data);
-    addPoint(d.angolo, d.distanza);
-    aggiornaUltimo(d);
-    aggiungiRiga(d, true);
-    totalCount++;
-    document.getElementById('counter').textContent = totalCount + ' rilevamenti';
-  };
-  ws.onclose = () => {
-    document.getElementById('statusDot').className = 'dot';
-    document.getElementById('statusText').textContent = 'OFFLINE — riconnessione...';
-    const url = localStorage.getItem('radarServer');
-    if (url) setTimeout(() => connectWS(url), 4000);
-  };
-  ws.onerror = () => ws.close();
-}
-
-// ─── STORICO ──────────────────────────────────
-async function caricaStorico() {
-  const url = localStorage.getItem('radarServer');
-  if (!url) return;
-  try {
-    const res  = await fetch(`${url}/api/storico?limit=100`);
-    const dati = await res.json();
-    document.getElementById('storicoBody').innerHTML = '';
-    dati.forEach(d => aggiungiRiga(d, false));
-    dati.slice(0, 40).forEach(d => addPoint(d.angolo, d.distanza));
-    totalCount = dati.length;
-    document.getElementById('counter').textContent = totalCount + ' rilevamenti';
-  } catch(e) { console.error('Storico non raggiungibile:', e); }
-}
-
-async function cancellaStorico() {
-  const url = localStorage.getItem('radarServer');
-  if (!url || !confirm('Cancellare tutto lo storico?')) return;
-  await fetch(`${url}/api/storico`, { method:'DELETE' });
-  document.getElementById('storicoBody').innerHTML = '';
-  totalCount = 0;
-  document.getElementById('counter').textContent = '0 rilevamenti';
-}
-
-function aggiornaUltimo(d) {
-  document.getElementById('lastAng').textContent  = parseFloat(d.angolo).toFixed(1);
-  document.getElementById('lastDist').textContent = d.distanza;
-  document.getElementById('lastTime').textContent = new Date(d.timestamp).toLocaleTimeString('it-IT');
-}
-
-function aggiungiRiga(d, prepend) {
-  const tbody = document.getElementById('storicoBody');
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${new Date(d.timestamp).toLocaleTimeString('it-IT')}</td>
-    <td>${parseFloat(d.angolo).toFixed(1)}°</td>
-    <td>${d.distanza} cm</td>`;
-  if (prepend) tbody.insertBefore(tr, tbody.firstChild);
-  else         tbody.appendChild(tr);
-}
-
-// ─── INIT ─────────────────────────────────────
-const savedUrl = localStorage.getItem('radarServer');
-if (savedUrl) {
-  connectWS(savedUrl);
-  caricaStorico();
-} else {
-  // Nessun server salvato → apri subito le impostazioni
-  setTimeout(openSettings, 500);
-}
+function init(){ const srv=getServer(); if(!srv){ document.getElementById('cfgBanner').style.display='flex'; return; } connectWS(srv); loadHistory(); }
+init();
 </script>
 </body>
 </html>
