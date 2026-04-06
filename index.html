@@ -458,6 +458,7 @@ function draw() {
   ctx.stroke();
 
   // Sweep trail
+  /*
   const sr = Math.PI - (sweep / 180) * Math.PI;
   const trailAngle = 35 * (Math.PI / 180);
   
@@ -482,6 +483,7 @@ function draw() {
   ctx.strokeStyle = CONFIG.colors.accent;
   ctx.lineWidth = 2;
   ctx.stroke();
+  */
 
   // Detected points with fade
   const now = Date.now();
@@ -537,6 +539,7 @@ function draw() {
   ctx.fill();
 
   // Update sweep
+  /*
   sweep += sweepDirection * SWEEP_SPEED;
   if (sweep >= CONFIG.maxAngle) {
     sweep = CONFIG.maxAngle;
@@ -545,6 +548,7 @@ function draw() {
     sweep = 0;
     sweepDirection = 1;
   }
+  */
   
   requestAnimationFrame(draw);
 }
