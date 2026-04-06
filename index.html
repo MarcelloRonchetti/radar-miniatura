@@ -178,16 +178,28 @@
 const canvas = document.getElementById('radarCanvas');
 const ctx    = canvas.getContext('2d');
 
-// Dimensioni fisse — non cambiano mai
-const W = 1200;
-const H = 700;
-canvas.width  = W;
-canvas.height = H;
+let W, H, CX, CY, R;
+const MAX_CANVAS_WIDTH  = 760;
+const MAX_CANVAS_HEIGHT = 700;
 
-// Centro del semicerchio: in basso al centro del canvas
-const CX = W / 2;
-const CY = H;
-const R  = Math.min(W / 2 - 16, H - 24);
+function resizeCanvas() {
+  const ratio = window.devicePixelRatio || 1;
+  const displayWidth  = Math.min(window.innerWidth - 320, MAX_CANVAS_WIDTH);
+  const displayHeight = Math.min(window.innerHeight - 140, MAX_CANVAS_HEIGHT);
+  canvas.style.width  = displayWidth + 'px';
+  canvas.style.height = displayHeight + 'px';
+  canvas.width  = Math.floor(displayWidth * ratio);
+  canvas.height = Math.floor(displayHeight * ratio);
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  W = displayWidth;
+  H = displayHeight;
+  CX = W / 2;
+  CY = H;
+  R = Math.min(W / 2 - 16, H - 24);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
 // ── CONVERSIONE ANGOLO → COORDINATE ──────────────────────────
 // Angolo radar: 0° = sinistra, 90° = sopra, 180° = destra
