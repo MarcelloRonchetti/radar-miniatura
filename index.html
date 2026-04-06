@@ -179,8 +179,8 @@ const canvas = document.getElementById('radarCanvas');
 const ctx    = canvas.getContext('2d');
 
 let W, H, CX, CY, R;
-const MAX_CANVAS_WIDTH  = 760;
-const MAX_CANVAS_HEIGHT = 700;
+const MAX_CANVAS_WIDTH  = 1350;
+const MAX_CANVAS_HEIGHT = 1080;
 
 function resizeCanvas() {
   const ratio = window.devicePixelRatio || 1;
@@ -236,7 +236,7 @@ function draw() {
     ctx.fillStyle  = '#9a8f84';
     ctx.font       = '10px JetBrains Mono';
     ctx.textAlign  = 'left';
-    ctx.fillText(d + 'cm', CX + rr + 3, CY - 3);
+    ctx.fillText(d + 'cm', CX + rr + 5, CY - 5);
   });
 
   // Linee angolari ogni 30°
@@ -251,13 +251,15 @@ function draw() {
     ctx.lineWidth   = 0.6;
     ctx.stroke();
     // Etichette
-    const lx = CX + (R + 18) * Math.cos(rad);
-    const ly = CY - (R + 18) * Math.sin(rad);
+    const offset = (a === 180) ? 25 : 18; // Sposta l'etichetta 180° più lontano
+    const lx = CX + (R + offset) * Math.cos(rad);
+    const ly = CY - (R + offset) * Math.sin(rad);
     ctx.fillStyle  = '#9a8f84';
     ctx.font       = '10px JetBrains Mono';
     ctx.textAlign  = 'center';
     ctx.fillText(a + '°', lx, ly);
   }
+
 
   // Linea base
   ctx.beginPath();
