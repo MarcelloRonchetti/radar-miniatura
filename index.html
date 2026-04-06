@@ -589,8 +589,7 @@ function addPoint(angleDeg, distCm) {
   
   if (isNaN(angle) || isNaN(dist)) return;
   
-  // Update sweep to current detection angle
-  sweep = angle;
+  // Do not snap sweep to detection angle - let it move continuously
   
   const { x, y } = polarToXY(angle, dist);
   pts.push({ x, y, alpha: 1.0, dist: dist, timestamp: Date.now() });
