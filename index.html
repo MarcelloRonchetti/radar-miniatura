@@ -268,20 +268,28 @@ function draw() {
 
   // ── Sweep ──
   const sr  = Math.PI - (sweep / 180) * Math.PI;
-  const fan = 6 * (Math.PI / 180);
-  const trailAngle = 16 * (Math.PI / 180);
+  const fan = 8 * (Math.PI / 180);
+  const trailAngle = 18 * (Math.PI / 180);
 
   ctx.beginPath();
   ctx.moveTo(CX, CY);
-  ctx.arc(CX, CY, R, sr - fan, sr + fan);
+  if (sweepDir === 1) {
+    ctx.arc(CX, CY, R, sr, sr - fan, true);
+  } else {
+    ctx.arc(CX, CY, R, sr, sr + fan, false);
+  }
   ctx.closePath();
-  ctx.fillStyle = 'rgba(240,140,39,0.07)';
+  ctx.fillStyle = 'rgba(240,140,39,0.08)';
   ctx.fill();
 
   // subtle trailing line effect behind current sweep
   ctx.beginPath();
-  ctx.arc(CX, CY, R, sr - trailAngle, sr);
-  ctx.strokeStyle = 'rgba(240,140,39,0.18)';
+  if (sweepDir === 1) {
+    ctx.arc(CX, CY, R, sr + trailAngle, sr, true);
+  } else {
+    ctx.arc(CX, CY, R, sr, sr - trailAngle, false);
+  }
+  ctx.strokeStyle = 'rgba(240,140,39,0.2)';
   ctx.lineWidth = 3;
   ctx.lineCap = 'round';
   ctx.stroke();
@@ -289,8 +297,8 @@ function draw() {
   ctx.beginPath();
   ctx.moveTo(CX, CY);
   ctx.lineTo(CX + R * Math.cos(sr), CY - R * Math.sin(sr));
-  ctx.strokeStyle = 'rgba(240,140,39,0.8)';
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(240,140,39,0.9)';
+  ctx.lineWidth = 1.8;
   ctx.lineCap = 'round';
   ctx.stroke();
 
@@ -343,8 +351,9 @@ function addPoint(angleDeg, distCm) {
   const d = parseFloat(distCm);
   if (isNaN(a) || isNaN(d)) return;
   if (!sweepSynced) {
-    sweep = a;
-    sweepDir = (a <= 90) ? 1 : -1;
+    sweep = Math.min(Math.max(a, 0), 180);
+    sweepDir = (sweep >= 179) ? -1 : 1;
+    lastFrameTime = performance.now();
     sweepSynced = true;
   }
   const { x, y } = polarToXY(a, d);
