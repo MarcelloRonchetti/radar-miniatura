@@ -22,224 +22,75 @@
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { height:100%; font-family:'JetBrains Mono',monospace; font-size:13px; }
+  body { background:var(--bg); color:var(--text); display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 
-  body {
-    background:var(--bg);
-    color:var(--text);
-    display:flex;
-    flex-direction:column;
-    height:100vh;
-    overflow:hidden;
-  }
-
-  /* ── Header ───────────────────────────────────────────── */
-  header {
-    flex-shrink:0;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:12px 24px;
-    border-bottom:1px solid var(--border);
-    background:var(--surface);
-    gap: 16px;
-  }
-  .logo { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:500; letter-spacing:0.15em; text-transform: uppercase; }
-  .logo-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); opacity:0.9; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-  
+  header { flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:12px 24px; border-bottom:1px solid var(--border); background:var(--surface); gap:16px; }
+  .logo { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:500; letter-spacing:0.15em; text-transform:uppercase; }
+  .logo-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); opacity:0.9; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
   .status { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-dim); }
-  .status-dot { width:7px; height:7px; border-radius:50%; background:var(--red); transition: all 0.4s; box-shadow: 0 0 4px var(--red); }
-  .status-dot.on { background:var(--green); box-shadow: 0 0 4px var(--green); }
-  .status-dot.connecting { background:var(--yellow); box-shadow: 0 0 4px var(--yellow); }
+  .status-dot { width:7px; height:7px; border-radius:50%; background:var(--red); transition:all 0.4s; box-shadow:0 0 4px var(--red); }
+  .status-dot.on { background:var(--green); box-shadow:0 0 4px var(--green); }
+  .status-dot.connecting { background:var(--yellow); box-shadow:0 0 4px var(--yellow); }
+  .header-controls { display:flex; gap:10px; align-items:center; }
+  .header-btn { background:transparent; border:1px solid var(--border); color:var(--text-dim); padding:4px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:4px; transition:all 0.2s; }
+  .header-btn:hover { border-color:var(--accent-dim); color:var(--accent); }
+  .header-btn.active { background:var(--accent-dim); color:var(--bg); border-color:var(--accent); }
 
-  .header-controls { display: flex; gap: 10px; align-items: center; }
-  .header-btn { 
-    background: transparent; 
-    border: 1px solid var(--border); 
-    color: var(--text-dim); 
-    padding: 4px 12px; 
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; 
-    cursor: pointer; 
-    border-radius: 4px; 
-    transition: all 0.2s; 
-  }
-  .header-btn:hover { border-color: var(--accent-dim); color: var(--accent); }
-  .header-btn.active { background: var(--accent-dim); color: var(--bg); border-color: var(--accent); }
-
-  /* ── Config Banner ────────────────────────────────────── */
-  #cfgBanner {
-    flex-shrink:0;
-    background:var(--surface);
-    border-bottom:1px solid var(--border);
-    padding:10px 24px;
-    display:none;
-    align-items:center;
-    gap:12px;
-    font-size:12px;
-    color:var(--text-dim);
-  }
-  #cfgBanner input {
-    background:var(--bg); border:1px solid var(--border); color:var(--text);
-    padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:12px;
-    border-radius:4px; width:300px; outline:none; transition: border-color 0.2s;
-  }
+  #cfgBanner { flex-shrink:0; background:var(--surface); border-bottom:1px solid var(--border); padding:10px 24px; display:none; align-items:center; gap:12px; font-size:12px; color:var(--text-dim); }
+  #cfgBanner input { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:4px; width:300px; outline:none; }
   #cfgBanner input:focus { border-color:var(--accent); }
-  #cfgBanner button {
-    background:var(--accent-dim); border:none; color:var(--accent);
-    padding:6px 16px; font-family:'JetBrains Mono',monospace;
-    font-size:12px; border-radius:4px; cursor:pointer; transition: background 0.2s, color 0.2s;
-  }
+  #cfgBanner button { background:var(--accent-dim); border:none; color:var(--accent); padding:6px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:4px; cursor:pointer; }
   #cfgBanner button:hover { background:var(--accent); color:var(--bg); }
 
-  /* ── Main Layout ──────────────────────────────────────── */
-  .main {
-    flex:1;
-    display:flex;
-    min-height:0;
-    overflow:hidden;
-  }
+  .main { flex:1; display:flex; min-height:0; overflow:hidden; }
 
-  /* ── Radar Panel ──────────────────────────────────────── */
-  .radar-panel {
-    flex:1;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-    position: relative;
-    background: radial-gradient(circle at center, rgba(240, 140, 39, 0.03) 0%, var(--bg) 70%);
-  }
-  
-  #radarCanvas {
-    display:block;
-    max-width: 100%;
-    max-height: 100%;
-    filter: drop-shadow(0 0 20px rgba(240, 140, 39, 0.1));
-  }
+  .radar-panel { flex:1; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; background:radial-gradient(circle at center, rgba(240,140,39,0.03) 0%, var(--bg) 70%); }
+  #radarCanvas { display:block; max-width:100%; max-height:100%; }
+  .radar-controls { position:absolute; bottom:24px; left:24px; display:flex; gap:10px; }
+  .radar-control-btn { background:rgba(20,20,20,0.8); border:1px solid var(--border); color:var(--text-dim); padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:10px; cursor:pointer; border-radius:4px; transition:all 0.2s; }
+  .radar-control-btn:hover { border-color:var(--accent); color:var(--accent); }
 
-  .radar-controls {
-    position: absolute;
-    bottom: 24px;
-    left: 24px;
-    display: flex;
-    gap: 10px;
-    z-index: 10;
-  }
-  .radar-control-btn {
-    background: rgba(20, 20, 20, 0.8);
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    padding: 6px 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.2s;
-    backdrop-filter: blur(4px);
-  }
-  .radar-control-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .radar-control-btn.active { background: var(--accent-dim); color: var(--bg); border-color: var(--accent); }
-
-  /* ── Side Panel ───────────────────────────────────────── */
-  .side {
-    width:320px;
-    flex-shrink:0;
-    border-left:1px solid var(--border);
-    display:flex;
-    flex-direction:column;
-    background: var(--surface);
-    overflow:hidden;
-  }
-
-  .card { 
-    flex-shrink:0; 
-    border-bottom:1px solid var(--border); 
-    padding:20px;
-  }
-  .card-label { font-size:10px; letter-spacing:0.2em; color:var(--text-dim); margin-bottom:16px; text-transform: uppercase; }
-  
+  .side { width:320px; flex-shrink:0; border-left:1px solid var(--border); display:flex; flex-direction:column; background:var(--surface); overflow:hidden; }
+  .card { flex-shrink:0; border-bottom:1px solid var(--border); padding:20px; }
+  .card-label { font-size:10px; letter-spacing:0.2em; color:var(--text-dim); margin-bottom:16px; text-transform:uppercase; }
   .det-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
   .det-key { font-size:11px; color:var(--text-dim); }
-  .det-val { font-size:28px; font-weight:300; color:var(--accent); text-shadow: 0 0 10px rgba(240, 140, 39, 0.3); transition: all 0.3s; }
+  .det-val { font-size:28px; font-weight:300; color:var(--accent); transition:all 0.3s; }
   .det-unit { font-size:11px; color:var(--text-dim); margin-left:3px; }
   .det-time { font-size:10px; color:var(--text-dim); margin-top:4px; }
-  
-  .det-val.alert { color: var(--red); text-shadow: 0 0 10px rgba(248, 81, 73, 0.5); }
-  .det-val.warning { color: var(--yellow); }
-
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 12px;
-  }
-  .metric-item {
-    background: var(--bg);
-    padding: 10px;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-  }
-  .metric-label { font-size: 9px; color: var(--text-dim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.1em; }
-  .metric-value { font-size: 16px; color: var(--text); font-weight: 500; }
-
-  .counter { 
-    flex-shrink:0; 
-    padding:8px 20px; 
-    font-size:10px; 
-    color:var(--text-dim); 
-    border-bottom:1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .history-stats {
-    display: flex;
-    gap: 8px;
-  }
-  .history-stat {
-    background: var(--bg);
-    padding: 2px 6px;
-    border-radius: 2px;
-    font-size: 9px;
-  }
-
-  /* ── History Table ────────────────────────────────────── */
+  .det-val.alert { color:var(--red); }
+  .det-val.warning { color:var(--yellow); }
+  .metrics-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .metric-item { background:var(--bg); padding:10px; border-radius:4px; border:1px solid var(--border); }
+  .metric-label { font-size:9px; color:var(--text-dim); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.1em; }
+  .metric-value { font-size:16px; color:var(--text); font-weight:500; }
+  .counter { flex-shrink:0; padding:8px 20px; font-size:10px; color:var(--text-dim); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .history-stats { display:flex; gap:8px; }
+  .history-stat { background:var(--bg); padding:2px 6px; border-radius:2px; font-size:9px; }
   .storico-wrap { flex:1; overflow-y:auto; min-height:0; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
-  .storico-wrap::-webkit-scrollbar { width: 4px; }
-  .storico-wrap::-webkit-scrollbar-track { background: var(--bg); }
-  .storico-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  
+  .storico-wrap::-webkit-scrollbar { width:4px; }
+  .storico-wrap::-webkit-scrollbar-track { background:var(--bg); }
+  .storico-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
   table { width:100%; border-collapse:collapse; }
-  th { position:sticky; top:0; background:var(--surface); font-size:10px; letter-spacing:0.15em; color:var(--text-dim); padding:10px 16px; text-align:left; font-weight:400; border-bottom:1px solid var(--border); text-transform: uppercase; }
-  td { padding:8px 16px; font-size:11px; border-bottom:1px solid rgba(44, 44, 44, 0.5); transition: background 0.2s; }
+  th { position:sticky; top:0; background:var(--surface); font-size:10px; letter-spacing:0.15em; color:var(--text-dim); padding:10px 16px; text-align:left; font-weight:400; border-bottom:1px solid var(--border); text-transform:uppercase; }
+  td { padding:8px 16px; font-size:11px; border-bottom:1px solid rgba(44,44,44,0.5); }
   tr:hover td { background:rgba(240,140,39,0.03); }
   td.ang { color:var(--accent); }
   td.dist { color:var(--text); }
-  td.dist.alert { color: var(--red); }
-  td.time { color: var(--text-dim); font-size: 10px; }
-
-  .footer-btns { flex-shrink:0; padding:12px 20px; display:flex; gap:8px; border-top:1px solid var(--border); background: var(--surface); }
-  .btn { flex:1; padding:8px; background:none; border:1px solid var(--border); color:var(--text-dim); font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:4px; transition:all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  td.dist.alert { color:var(--red); }
+  td.time { color:var(--text-dim); font-size:10px; }
+  .footer-btns { flex-shrink:0; padding:12px 20px; display:flex; gap:8px; border-top:1px solid var(--border); background:var(--surface); }
+  .btn { flex:1; padding:8px; background:none; border:1px solid var(--border); color:var(--text-dim); font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:4px; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px; }
   .btn:hover { border-color:var(--accent-dim); color:var(--accent); }
   .btn-danger:hover { border-color:var(--red); color:var(--red); }
-  .btn-icon { font-size: 14px; }
 
-  /* ── Responsive ───────────────────────────────────────── */
-  @media (max-width: 900px) {
-    .main { flex-direction: column; }
-    .side { width: 100%; border-left: none; border-top: 1px solid var(--border); max-height: 40vh; }
-    .radar-panel { padding: 16px; }
-    .det-val { font-size: 24px; }
+  @media (max-width:900px) {
+    .main { flex-direction:column; }
+    .side { width:100%; border-left:none; border-top:1px solid var(--border); max-height:40vh; }
   }
-
-  /* ── Animations ───────────────────────────────────────── */
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-  .fade-in { animation: fadeIn 0.3s ease-out; }
-
-  .proximity-warning { animation: pulse-red 1.5s infinite; }
-  @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.3); } 50% { box-shadow: 0 0 0 6px rgba(248, 81, 73, 0); } }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation:fadeIn 0.2s ease-out; }
 </style>
 </head>
 <body>
@@ -248,7 +99,6 @@
   <div class="logo"><div class="logo-dot"></div>RADAR MINIATURA</div>
   <div class="status"><div class="status-dot" id="sDot"></div><span id="sTxt">offline</span></div>
   <div class="header-controls">
-    <button type="button" class="header-btn" id="btnSimulate" onclick="toggleSimulation()">SIM</button>
     <button type="button" class="header-btn" id="btnConfig" onclick="showConfig()">⚙</button>
   </div>
 </header>
@@ -257,15 +107,14 @@
   server ngrok:
   <input type="text" id="srvInput" placeholder="https://xxxx.ngrok-free.app">
   <button type="button" onclick="saveServer()">connetti</button>
-  <button type="button" onclick="hideConfig()" style="background: transparent; border: 1px solid var(--border); color: var(--text-dim);">✕</button>
+  <button type="button" onclick="hideConfig()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 10px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;">✕</button>
 </div>
 
 <div class="main">
   <div class="radar-panel">
     <canvas id="radarCanvas"></canvas>
     <div class="radar-controls">
-      <button type="button" class="radar-control-btn" onclick="clearRadar()">Svuota Radar</button>
-      <button type="button" class="radar-control-btn" onclick="toggleSimulation()" id="btnSimRadar">Modalità Sim</button>
+      <button type="button" class="radar-control-btn" onclick="clearRadar()">Svuota radar</button>
     </div>
   </div>
   <div class="side">
@@ -281,543 +130,319 @@
       </div>
       <div class="det-time" id="dTime">—</div>
       <div class="metrics-grid">
-        <div class="metric-item">
-          <div class="metric-label">Min Distanza</div>
-          <div class="metric-value" id="dMin">—</div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-label">Max Distanza</div>
-          <div class="metric-value" id="dMax">—</div>
-        </div>
+        <div class="metric-item"><div class="metric-label">Min</div><div class="metric-value" id="dMin">—</div></div>
+        <div class="metric-item"><div class="metric-label">Max</div><div class="metric-value" id="dMax">—</div></div>
       </div>
     </div>
-    
     <div class="counter">
       <span id="counter">0 rilevamenti</span>
       <div class="history-stats">
         <div class="history-stat" id="statAvg">Ø —</div>
-        <div class="history-stat" id="statAlert">⚠ —</div>
+        <div class="history-stat" id="statAlert">⚠ 0</div>
       </div>
     </div>
-    
     <div class="storico-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>Ora</th>
-            <th>Ang</th>
-            <th>Dist</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Ora</th><th>Ang</th><th>Dist</th></tr></thead>
         <tbody id="tbody">
-          <tr class="placeholder-row">
-            <td colspan="3" style="text-align: center; color: var(--text-dim); padding: 20px 0;">Nessun dato disponibile</td>
-          </tr>
+          <tr class="placeholder-row"><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px 0;">Nessun dato</td></tr>
         </tbody>
       </table>
     </div>
-    
     <div class="footer-btns">
-      <button type="button" class="btn" onclick="loadHistory()"><span class="btn-icon">↺</span> Storico</button>
-      <button type="button" class="btn btn-danger" onclick="clearHistory()"><span class="btn-icon">✕</span> Cancella</button>
+      <button type="button" class="btn" onclick="loadHistory()">↺ Storico</button>
+      <button type="button" class="btn btn-danger" onclick="clearHistory()">✕ Cancella</button>
     </div>
   </div>
 </div>
 
 <script>
-// ── Configuration ──────────────────────────────────────────
-const CONFIG = {
-  maxDist: 100,
-  maxAngle: 180,
-  pointLife: 4000, // ms
-  colors: {
-    bg: '#080808',
-    surface: '#141414',
-    border: '#2c2c2c',
-    accent: '#f08c27',
-    accentDim: '#9b570d',
-    text: '#e8e2d3',
-    textDim: '#9a8f84',
-    green: '#4fb961',
-    red: '#f85149',
-    yellow: '#fbbf24'
-  }
-};
+// ── Costanti ────────────────────────────────────────────────
+const MAX_DIST  = 200;   // ← 200cm
+const MAX_ANGLE = 180;
+const POINT_LIFE = 5000; // ms fade
 
-// ── Canvas Setup ───────────────────────────────────────────
+// ── Canvas ──────────────────────────────────────────────────
 const canvas = document.getElementById('radarCanvas');
 const ctx    = canvas.getContext('2d');
-
 let W, H, CX, CY, R;
 
 function resizeCanvas() {
-  const panel = document.querySelector('.radar-panel');
-  const panelW = panel.clientWidth - 48;
-  const panelH = panel.clientHeight - 48;
-  
-  const size = Math.min(panelW, panelH, 800);
-  const ratio = window.devicePixelRatio || 1;
-  
-  canvas.style.width  = size + 'px';
-  canvas.style.height = size + 'px';
-  canvas.width  = Math.floor(size * ratio);
-  canvas.height = Math.floor(size * ratio);
-  
+  const panel  = document.querySelector('.radar-panel');
+  const avail  = Math.min(panel.clientWidth - 48, panel.clientHeight - 48, 820);
+  const ratio  = window.devicePixelRatio || 1;
+  canvas.style.width  = avail + 'px';
+  canvas.style.height = avail + 'px';
+  canvas.width  = Math.round(avail * ratio);
+  canvas.height = Math.round(avail * ratio);
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  ctx.imageSmoothingEnabled = true;
-  
-  W = size;
-  H = size;
+  W  = avail;
+  H  = avail;
   CX = W / 2;
-  CY = H - 16;
-  R = Math.min(W / 2 - 32, H - 32);
+  // ↓ CY più in alto per fare spazio alle etichette gradi SOTTO la baseline
+  CY = H - 30;
+  R  = Math.min(CX - 30, CY - 16);
 }
 resizeCanvas();
-window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+window.addEventListener('resize', () => { resizeCanvas(); });
 
-// ── Coordinate Conversion ──────────────────────────────────
+// ── Conversione polare → canvas ─────────────────────────────
+// 0°=sinistra, 90°=sopra, 180°=destra
+// y canvas cresce verso il basso → usiamo CY - r*sin
 function polarToXY(angleDeg, distCm) {
-  const rad = Math.PI - (angleDeg / 180) * Math.PI;
-  const r   = (Math.min(distCm, CONFIG.maxDist) / CONFIG.maxDist) * R;
+  const rad = Math.PI - (angleDeg / MAX_ANGLE) * Math.PI;
+  const r   = (Math.min(distCm, MAX_DIST) / MAX_DIST) * R;
   return {
     x: CX + r * Math.cos(rad),
     y: CY - r * Math.sin(rad)
   };
 }
 
-// ── State ──────────────────────────────────────────────────
-const pts  = [];
-let sweep = 0;
-let sweepDirection = 1; // 1 for increasing, -1 for decreasing
-let isSimulating = false;
-let simInterval = null;
-let lastDist = null;
-let minDist = Infinity;
-let maxDist = -Infinity;
-let alertCount = 0;
+// ── Stato ───────────────────────────────────────────────────
+const pts = [];
+let sweep = 90, sweepDir = 1;
+let isSimulating = false, simInterval = null;
+let n = 0, minDist = Infinity, maxDist = -Infinity, alertCount = 0;
 let ws = null;
-let n = 0;
 
-// Sweep speed: 180 degrees in 2 seconds at 60 FPS = 1.5 degrees per frame
-const SWEEP_SPEED = 1.5;
-
-// ── Draw Loop ──────────────────────────────────────────────
+// ── Draw ────────────────────────────────────────────────────
 function draw() {
-  // Clear
-  ctx.fillStyle = CONFIG.colors.bg;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#080808';
   ctx.fillRect(0, 0, W, H);
 
-  // Grid - Distance circles
-  const steps = 4;
-  for (let i = 1; i <= steps; i++) {
-    const d = (CONFIG.maxDist / steps) * i;
-    const rr = (i / steps) * R;
-    
+  // ── Cerchi distanza ──
+  // Etichette cm: dentro al grafico, vicino al cerchio, lato destro
+  const ringDists = [50, 100, 150, 200];
+  ringDists.forEach(d => {
+    const rr = (d / MAX_DIST) * R;
     ctx.beginPath();
     ctx.arc(CX, CY, rr, Math.PI, 2 * Math.PI);
-    ctx.strokeStyle = CONFIG.colors.border;
+    ctx.strokeStyle = '#2c2c2c';
     ctx.lineWidth = 1;
     ctx.stroke();
-    
-    // Distance label
-    ctx.fillStyle = CONFIG.colors.textDim;
+    // Etichetta cm dentro il grafico (angolo 15°, vicino al cerchio)
+    const lrad = Math.PI - (15 / 180) * Math.PI;
+    ctx.fillStyle = '#4a4040';
     ctx.font = '10px JetBrains Mono';
     ctx.textAlign = 'left';
-    ctx.fillText(d.toFixed(0) + 'cm', CX + rr + 4, CY - 2);
-  }
-
-  // Grid - Angle lines
-  const angleSteps = [0, 30, 60, 90, 120, 150, 180];
-  angleSteps.forEach(a => {
-    const rad = Math.PI - (a / 180) * Math.PI;
-    const ex  = CX + R * Math.cos(rad);
-    const ey  = CY - R * Math.sin(rad);
-    
-    ctx.beginPath();
-    ctx.moveTo(CX, CY);
-    ctx.lineTo(ex, ey);
-    ctx.strokeStyle = CONFIG.colors.border;
-    ctx.lineWidth = 0.6;
-    ctx.stroke();
-    
-    // Angle label
-    const lx = CX + (R + 14) * Math.cos(rad);
-    const ly = CY - (R + 14) * Math.sin(rad);
-    ctx.fillStyle = CONFIG.colors.textDim;
-    ctx.font = '10px JetBrains Mono';
-    ctx.textAlign = 'center';
-    ctx.fillText(a + '°', lx, ly);
+    ctx.fillText(d + 'cm', CX + rr * Math.cos(lrad) + 3, CY - rr * Math.sin(lrad));
   });
 
-  // Base line
+  // ── Linee angolari + etichette SOTTO la baseline ──
+  const angles = [0, 30, 60, 90, 120, 150, 180];
+  angles.forEach(a => {
+    const rad = Math.PI - (a / 180) * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(CX + R * Math.cos(rad), CY - R * Math.sin(rad));
+    ctx.strokeStyle = '#2c2c2c';
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+
+    // Etichetta gradi: SOTTO la baseline (CY + offset)
+    // I punti 0° e 180° sono sulla linea base, gli altri escono sopra
+    // Le etichette le mettiamo tutte in basso, appena sotto CY
+    const lx = CX + (R + 6) * Math.cos(rad);
+    // per 90° il punto finisce in cima, le etichette solo per angoli vicini alla base
+    // mettiamo tutte le etichette sotto CY
+    ctx.fillStyle = '#6a5a4a';
+    ctx.font = '11px JetBrains Mono';
+    ctx.textAlign = 'center';
+    // Posizione X calcolata sul punto in cui la linea tocca la base estesa
+    // Usiamo direttamente lx (proiezione sul raggio esteso) e CY + 16
+    ctx.fillText(a + '°', lx, CY + 18);
+  });
+
+  // ── Linea base ──
   ctx.beginPath();
-  ctx.moveTo(CX - R - 16, CY);
-  ctx.lineTo(CX + R + 16, CY);
-  ctx.strokeStyle = CONFIG.colors.border;
-  ctx.lineWidth = 1;
+  ctx.moveTo(CX - R - 20, CY);
+  ctx.lineTo(CX + R + 20, CY);
+  ctx.strokeStyle = '#3a2a1a';
+  ctx.lineWidth = 1.2;
   ctx.stroke();
 
-  // Sweep trail
-  /*
-  const sr = Math.PI - (sweep / 180) * Math.PI;
-  const trailAngle = 35 * (Math.PI / 180);
-  
-  // Gradient for sweep trail
-  const grad = ctx.createRadialGradient(CX, CY, 0, CX, CY, R);
-  grad.addColorStop(0, 'rgba(240, 140, 39, 0.25)');
-  grad.addColorStop(1, 'rgba(240, 140, 39, 0.02)');
-  
+  // ── Sweep ──
+  const sr  = Math.PI - (sweep / 180) * Math.PI;
+  const fan = 6 * (Math.PI / 180);
   ctx.beginPath();
   ctx.moveTo(CX, CY);
-  ctx.arc(CX, CY, R, sr - trailAngle, sr);
+  ctx.arc(CX, CY, R, sr - fan, sr + fan);
   ctx.closePath();
-  ctx.fillStyle = grad;
+  ctx.fillStyle = 'rgba(240,140,39,0.07)';
   ctx.fill();
-
-  // Sweep line
   ctx.beginPath();
   ctx.moveTo(CX, CY);
-  const sx = CX + R * Math.cos(sr);
-  const sy = CY - R * Math.sin(sr);
-  ctx.lineTo(sx, sy);
-  ctx.strokeStyle = CONFIG.colors.accent;
-  ctx.lineWidth = 2;
+  ctx.lineTo(CX + R * Math.cos(sr), CY - R * Math.sin(sr));
+  ctx.strokeStyle = 'rgba(240,140,39,0.6)';
+  ctx.lineWidth = 1.5;
   ctx.stroke();
-  */
 
-  // Detected points with fade
+  // ── Punti ──
   const now = Date.now();
   for (let i = pts.length - 1; i >= 0; i--) {
     const p = pts[i];
-    const age = now - p.timestamp;
-    p.alpha = Math.max(0, 1 - (age / CONFIG.pointLife));
-    
-    if (p.alpha <= 0) { 
-      pts.splice(i, 1); 
-      continue; 
-    }
+    const age = now - p.ts;
+    p.alpha = Math.max(0, 1 - age / POINT_LIFE);
+    if (p.alpha <= 0) { pts.splice(i, 1); continue; }
 
-    const isAlert = p.dist < 20;
-    const color = isAlert ? 
-      `rgba(248, 81, 73, ${p.alpha})` : 
-      `rgba(240, 140, 39, ${p.alpha})`;
-    const glowColor = isAlert ? 
-      `rgba(248, 81, 73, ${p.alpha * 0.2})` : 
-      `rgba(240, 140, 39, ${p.alpha * 0.15})`;
+    const isAlert = p.dist < 30;
+    const base = isAlert ? '248,81,73' : '240,140,39';
 
-    // Glow
     ctx.beginPath();
     ctx.arc(p.x, p.y, 10, 0, 2 * Math.PI);
-    ctx.fillStyle = glowColor;
+    ctx.fillStyle = `rgba(${base},${p.alpha * 0.15})`;
     ctx.fill();
-
-    // Point
     ctx.beginPath();
     ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
-    ctx.fillStyle = color;
+    ctx.fillStyle = `rgba(${base},${p.alpha})`;
     ctx.fill();
-    
-    // Bright center
     ctx.beginPath();
     ctx.arc(p.x, p.y, 1.5, 0, 2 * Math.PI);
-    ctx.fillStyle = isAlert ? 
-      `rgba(255, 200, 180, ${p.alpha})` : 
-      `rgba(255, 230, 200, ${p.alpha})`;
+    ctx.fillStyle = `rgba(255,220,180,${p.alpha})`;
     ctx.fill();
   }
 
-  // Center point
-  ctx.beginPath();
-  ctx.arc(CX, CY, 4, 0, 2 * Math.PI);
-  ctx.fillStyle = CONFIG.colors.accent;
-  ctx.fill();
-  
-  // Center glow
-  ctx.beginPath();
-  ctx.arc(CX, CY, 8, 0, 2 * Math.PI);
-  ctx.fillStyle = 'rgba(240, 140, 39, 0.3)';
-  ctx.fill();
+  // ── Centro ──
+  ctx.beginPath(); ctx.arc(CX, CY, 4, 0, 2 * Math.PI);
+  ctx.fillStyle = '#f08c27'; ctx.fill();
+  ctx.beginPath(); ctx.arc(CX, CY, 8, 0, 2 * Math.PI);
+  ctx.fillStyle = 'rgba(240,140,39,0.25)'; ctx.fill();
 
-  // Update sweep
-  /*
-  sweep += sweepDirection * SWEEP_SPEED;
-  if (sweep >= CONFIG.maxAngle) {
-    sweep = CONFIG.maxAngle;
-    sweepDirection = -1;
-  } else if (sweep <= 0) {
-    sweep = 0;
-    sweepDirection = 1;
-  }
-  */
-  
+  // Avanza sweep
+  sweep += sweepDir * 0.6;
+  if (sweep >= 180) { sweep = 180; sweepDir = -1; }
+  else if (sweep <= 0) { sweep = 0; sweepDir = 1; }
+
   requestAnimationFrame(draw);
 }
 draw();
 
-// ── Simulation ─────────────────────────────────────────────
-function toggleSimulation() {
-  isSimulating = !isSimulating;
-  document.getElementById('btnSimulate').classList.toggle('active', isSimulating);
-  document.getElementById('btnSimRadar').classList.toggle('active', isSimulating);
-  
-  if (isSimulating) {
-    startSimulation();
-  } else {
-    stopSimulation();
-  }
-}
-
-function startSimulation() {
-  if (simInterval) clearInterval(simInterval);
-  
-  simInterval = setInterval(() => {
-    // Generate realistic sweep-based detections
-    const angle = Math.random() * CONFIG.maxAngle;
-    const dist = Math.random() * CONFIG.maxDist * 1.5;
-    
-    addPoint(angle, dist);
-  }, 300);
-}
-
-function stopSimulation() {
-  if (simInterval) {
-    clearInterval(simInterval);
-    simInterval = null;
-  }
-}
-
-// ── Data Handling ──────────────────────────────────────────
+// ── Aggiungi punto ──────────────────────────────────────────
 function addPoint(angleDeg, distCm) {
-  const angle = parseFloat(angleDeg);
-  const dist = parseInt(distCm);
-  
-  if (isNaN(angle) || isNaN(dist)) return;
-  
-  // Do not snap sweep to detection angle - let it move continuously
-  
-  const { x, y } = polarToXY(angle, dist);
-  pts.push({ x, y, alpha: 1.0, dist: dist, timestamp: Date.now() });
-  
-  // Update UI
-  updateLast({ angolo: angle, distanza: dist, timestamp: Date.now() });
-  addRow({ angolo: angle, distanza: dist, timestamp: Date.now() }, true);
-  updateStats(dist);
-  
-  n++;
-  document.getElementById('counter').textContent = n + ' rilevamenti';
+  const a = parseFloat(angleDeg);
+  const d = parseFloat(distCm);
+  if (isNaN(a) || isNaN(d)) return;
+  sweep = a;
+  const { x, y } = polarToXY(a, d);
+  pts.push({ x, y, alpha: 1, dist: d, ts: Date.now() });
 }
 
-function updateStats(dist) {
-  if (dist < minDist) minDist = dist;
-  if (dist > maxDist) maxDist = dist;
-  
-  document.getElementById('dMin').textContent = minDist === Infinity ? '—' : minDist.toFixed(0);
-  document.getElementById('dMax').textContent = maxDist === -Infinity ? '—' : maxDist.toFixed(0);
-  
-  if (dist < 30) alertCount++;
-  document.getElementById('statAlert').textContent = '⚠ ' + alertCount;
-  
-  // Update average
-  const avgDist = minDist !== Infinity ? ((minDist + maxDist) / 2).toFixed(0) : '—';
-  document.getElementById('statAvg').textContent = 'Ø ' + avgDist;
-}
-
-// ── Server Config ──────────────────────────────────────────
+// ── Server config ───────────────────────────────────────────
 function getServer() {
   const p = new URLSearchParams(location.search);
   if (p.get('server')) localStorage.setItem('rs', p.get('server'));
   return localStorage.getItem('rs');
 }
-
 function saveServer() {
-  const input = document.getElementById('srvInput');
-  const v = input.value.trim().replace(/\/$/, '');
+  const v = document.getElementById('srvInput').value.trim().replace(/\/$/, '');
   if (!v) return;
-  
   localStorage.setItem('rs', v);
-  hideConfig();
-  init();
+  hideConfig(); init();
 }
+function showConfig() { document.getElementById('cfgBanner').style.display = 'flex'; }
+function hideConfig() { document.getElementById('cfgBanner').style.display = 'none'; }
 
-function showConfig() {
-  document.getElementById('cfgBanner').style.display = 'flex';
-}
-
-function hideConfig() {
-  document.getElementById('cfgBanner').style.display = 'none';
-}
-
-// ── WebSocket ──────────────────────────────────────────────
+// ── WebSocket ───────────────────────────────────────────────
 function connectWS(srv) {
   if (ws) ws.close();
-  
   document.getElementById('sDot').classList.add('connecting');
-  document.getElementById('sDot').classList.remove('on');
   document.getElementById('sTxt').textContent = 'connessione...';
-  
-  const wsUrl = srv.replace(/^http/, 'ws');
-  ws = new WebSocket(wsUrl);
-  
+  ws = new WebSocket(srv.replace(/^http/, 'ws'));
   ws.onopen = () => {
     document.getElementById('sDot').classList.remove('connecting');
     document.getElementById('sDot').classList.add('on');
-    document.getElementById('sTxt').textContent = 'online · ' + srv.replace('https://', '').replace('http://', '');
-    document.getElementById('btnSimulate').classList.remove('active');
-    stopSimulation();
+    document.getElementById('sTxt').textContent = 'online · ' + srv.replace(/^https?:\/\//, '');
   };
-  
   ws.onmessage = e => {
     try {
       const d = JSON.parse(e.data);
       addPoint(d.angolo, d.distanza);
-    } catch (err) {
-      console.error('Invalid message:', err);
-    }
+      updateLast(d);
+      addRow(d, true);
+      updateStats(parseFloat(d.distanza));
+      n++; document.getElementById('counter').textContent = n + ' rilevamenti';
+    } catch(err) { console.error(err); }
   };
-  
   ws.onclose = () => {
     document.getElementById('sDot').classList.remove('on', 'connecting');
     document.getElementById('sTxt').textContent = 'offline';
-    if (!isSimulating) {
-      setTimeout(() => connectWS(srv), 4000);
-    }
+    setTimeout(() => connectWS(srv), 4000);
   };
-  
-  ws.onerror = () => {
-    document.getElementById('sDot').classList.remove('on', 'connecting');
-    document.getElementById('sTxt').textContent = 'errore';
-    ws.close();
-  };
+  ws.onerror = () => ws.close();
 }
 
-// ── UI Updates ─────────────────────────────────────────────
+// ── UI ──────────────────────────────────────────────────────
 function updateLast(d) {
-  const angleEl = document.getElementById('dAng');
-  const distEl = document.getElementById('dDist');
-  
-  angleEl.textContent = parseFloat(d.angolo).toFixed(1);
-  distEl.textContent = d.distanza;
+  const ae = document.getElementById('dAng');
+  const de = document.getElementById('dDist');
+  ae.textContent = parseFloat(d.angolo).toFixed(1);
+  de.textContent = d.distanza;
   document.getElementById('dTime').textContent = new Date(d.timestamp).toLocaleTimeString('it-IT');
-  
-  // Visual feedback
-  distEl.classList.remove('alert', 'warning');
-  if (d.distanza < 20) distEl.classList.add('alert');
-  else if (d.distanza < 40) distEl.classList.add('warning');
-  
-  lastDist = d.distanza;
+  de.classList.remove('alert', 'warning');
+  if (d.distanza < 30) de.classList.add('alert');
+  else if (d.distanza < 60) de.classList.add('warning');
+}
+
+function updateStats(dist) {
+  if (dist < minDist) { minDist = dist; document.getElementById('dMin').textContent = dist.toFixed(0); }
+  if (dist > maxDist) { maxDist = dist; document.getElementById('dMax').textContent = dist.toFixed(0); }
+  if (dist < 30) { alertCount++; document.getElementById('statAlert').textContent = '⚠ ' + alertCount; }
+  if (minDist !== Infinity && maxDist !== -Infinity)
+    document.getElementById('statAvg').textContent = 'Ø ' + ((minDist + maxDist) / 2).toFixed(0);
 }
 
 function addRow(d, pre) {
-  const placeholder = document.querySelector('.placeholder-row');
-  if (placeholder) placeholder.remove();
-  
+  const ph = document.querySelector('.placeholder-row');
+  if (ph) ph.remove();
   const tr = document.createElement('tr');
   tr.classList.add('fade-in');
-  
-  const isAlert = d.distanza < 20;
-  const distClass = isAlert ? 'dist alert' : 'dist';
-  
-  tr.innerHTML = `
-    <td class="time">${new Date(d.timestamp).toLocaleTimeString('it-IT')}</td>
+  tr.innerHTML = `<td class="time">${new Date(d.timestamp).toLocaleTimeString('it-IT')}</td>
     <td class="ang">${parseFloat(d.angolo).toFixed(1)}°</td>
-    <td class="${distClass}">${d.distanza} cm</td>
-  `;
-  
+    <td class="${d.distanza < 30 ? 'dist alert' : 'dist'}">${d.distanza} cm</td>`;
   const tb = document.getElementById('tbody');
-  if (pre) tb.insertBefore(tr, tb.firstChild);
-  else tb.appendChild(tr);
-  
-  // Limit visible rows
-  while (tb.children.length > 100) {
-    tb.removeChild(tb.lastChild);
-  }
+  if (pre) tb.insertBefore(tr, tb.firstChild); else tb.appendChild(tr);
+  while (tb.children.length > 100) tb.removeChild(tb.lastChild);
 }
 
 async function loadHistory() {
-  const srv = getServer();
-  if (!srv) return;
-  
+  const srv = getServer(); if (!srv) return;
   try {
-    const r    = await fetch(srv + '/api/storico?limit=50');
-    const data = await r.json();
-    
+    const data = await (await fetch(srv + '/api/storico?limit=50')).json();
     document.getElementById('tbody').innerHTML = '';
-    
-    // Reset stats
-    minDist = Infinity;
-    maxDist = -Infinity;
-    alertCount = 0;
-    
-    data.forEach(d => {
-      addRow(d, false);
-      updateStats(d.distanza);
-    });
-    
+    minDist = Infinity; maxDist = -Infinity; alertCount = 0;
+    data.forEach(d => { addRow(d, false); updateStats(parseFloat(d.distanza)); });
+    data.slice(0, 40).forEach(d => addPoint(d.angolo, d.distanza));
     n = data.length;
     document.getElementById('counter').textContent = n + ' rilevamenti';
-    
-    // Add points to radar
-    data.slice(0, 30).forEach(d => addPoint(d.angolo, d.distanza));
-    
-  } catch(e) { 
-    console.error('Failed to load history:', e); 
-  }
+  } catch(e) { console.error('loadHistory:', e); }
 }
 
 async function clearHistory() {
   const srv = getServer();
-  if (!srv || !confirm('Cancellare tutto lo storico?')) return;
-  
+  if (!srv) { alert('Server non configurato'); return; }
+  if (!confirm('Cancellare tutto lo storico?')) return;
   try {
-    await fetch(srv + '/api/storico', { method: 'DELETE' });
-  } catch (e) {
-    console.error('Failed to clear history:', e);
-  }
-  
-  document.getElementById('tbody').innerHTML = `
-    <tr class="placeholder-row">
-      <td colspan="3" style="text-align: center; color: var(--text-dim); padding: 20px 0;">Nessun dato disponibile</td>
-    </tr>
-  `;
-  pts.length = 0; 
-  n = 0;
-  minDist = Infinity;
-  maxDist = -Infinity;
-  alertCount = 0;
-  
-  document.getElementById('dAng').textContent = '—';
-  document.getElementById('dDist').textContent = '—';
-  document.getElementById('dTime').textContent = '—';
-  document.getElementById('dMin').textContent = '—';
-  document.getElementById('dMax').textContent = '—';
+    const r = await fetch(srv + '/api/storico', { method: 'DELETE' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch(e) { alert('Errore: ' + e.message); return; }
+  document.getElementById('tbody').innerHTML = '<tr class="placeholder-row"><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px 0;">Nessun dato</td></tr>';
+  pts.length = 0; n = 0; minDist = Infinity; maxDist = -Infinity; alertCount = 0;
+  ['dAng','dDist','dTime','dMin','dMax'].forEach(id => document.getElementById(id).textContent = '—');
   document.getElementById('counter').textContent = '0 rilevamenti';
   document.getElementById('statAvg').textContent = 'Ø —';
-  document.getElementById('statAlert').textContent = '⚠ —';
+  document.getElementById('statAlert').textContent = '⚠ 0';
 }
 
-function clearRadar() {
-  pts.length = 0;
-}
+function clearRadar() { pts.length = 0; }
 
-// ── Initialization ─────────────────────────────────────────
+// ── Init ─────────────────────────────────────────────────────
 function init() {
   const srv = getServer();
-  if (!srv) { 
-    document.getElementById('cfgBanner').style.display = 'flex';
-    document.getElementById('sTxt').textContent = 'configura server';
-    return; 
-  }
-  
-  connectWS(srv);
-  loadHistory();
+  if (!srv) { document.getElementById('cfgBanner').style.display = 'flex'; return; }
+  connectWS(srv); loadHistory();
 }
-
-// Wait for DOM
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+init();
 </script>
 </body>
 </html>
