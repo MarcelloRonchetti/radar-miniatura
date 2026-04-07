@@ -184,7 +184,7 @@
 const MAX_DIST  = 200;   // Distanza massima visualizzabile (cm)
 const MAX_ANGLE = 180;   // Angolo massimo di scansione (gradi)
 const POINT_LIFE = 5000; // Durata visiva di un punto sul radar (ms)
-const SWEEP_DURATION_MS = 2000; // Tempo per una scansione completa 0°→180° (deve coincidere con il motore)
+const SWEEP_DURATION_MS = 4000; // Tempo per una scansione completa 0°→180° (deve coincidere con il motore)   //Aggiungere Accelerazione come motore (stepper.setAcceleration(MOTOR_ACCEL); MOTOR_ACCEL definito in config.h) per scansione più fluida, altrimenti il motore rallenta agli estremi e non rispetta perfettamente i tempi di sweep
 const SWEEP_SPEED_DEG_PER_MS = MAX_ANGLE / SWEEP_DURATION_MS; // Velocità angolare calcolata
 let lastFrameTime = performance.now(); // Timestamp ultimo frame per animazione fluida
 
