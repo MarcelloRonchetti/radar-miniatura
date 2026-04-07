@@ -180,13 +180,19 @@
 
 <!-- ─── JAVASCRIPT: logica radar, WebSocket, UI ───────────────── -->
 <script>
-// ── COSTANTI DI CONFIGURAZIONE ───────────────────────────────────
-const MAX_DIST  = 200;   // Distanza massima visualizzabile (cm)
-const MAX_ANGLE = 180;   // Angolo massimo di scansione (gradi)
-const POINT_LIFE = 5000; // Durata visiva di un punto sul radar (ms)
-const SWEEP_DURATION_MS = 4000; // Tempo per una scansione completa 0°→180° (deve coincidere con il motore)   //Aggiungere Accelerazione come motore (stepper.setAcceleration(MOTOR_ACCEL); MOTOR_ACCEL definito in config.h) per scansione più fluida, altrimenti il motore rallenta agli estremi e non rispetta perfettamente i tempi di sweep
-const SWEEP_SPEED_DEG_PER_MS = MAX_ANGLE / SWEEP_DURATION_MS; // Velocità angolare calcolata
-let lastFrameTime = performance.now(); // Timestamp ultimo frame per animazione fluida
+// ── Costanti ────────────────────────────────────────────────
+const MAX_DIST  = 200;
+const MAX_ANGLE = 180;
+const POINT_LIFE = 5000;
+
+// Tempo totale per una scansione completa 0°→180°→0° (inclusa accelerazione)
+const SWEEP_CYCLE_MS = 5200;      // tempo totale 0°→180°→0°
+const SWEEP_MAX_SPEED = 0.12;     // deg/ms (≈400 steps/s convertiti)
+const SWEEP_ACCEL = 0.00035;      // deg/ms² (≈150 steps/s² convertiti)
+const SWEEP_DECEL_DIST = 15;      // gradi di frenata
+
+let lastFrameTime = performance.now();
+
 
 // ── SETUP CANVAS ─────────────────────────────────────────────────
 const canvas = document.getElementById('radarCanvas');
@@ -226,9 +232,11 @@ function polarToXY(angleDeg, distCm) {
 
 // ── STATO GLOBALE DELL'APPLICAZIONE ─────────────────────────────
 const pts = [];              // Array punti visualizzati sul radar {x,y,alpha,dist,ts}
-let sweep = 90, sweepDir = 1; // Angolo corrente della linea di scansione e direzione (+1/-1)
-let sweepSynced = false;     // Flag: sincronizza sweep con primo dato ricevuto
-let isSimulating = false, simInterval = null; // (Opzionale) simulazione dati per test
+// ── Stato sweep con accelerazione ───────────────────────────
+let sweep = 90;              // angolo corrente
+let sweepSpeed = 0;          // velocità corrente (deg/ms), parte da 0
+let sweepDir = 1;            // direzione: +1 o -1
+let sweepSynced = false;     // sincronizzazione con primo dato
 let n = 0, minDist = Infinity, maxDist = -Infinity, alertCount = 0; // Statistiche
 let ws = null;               // Oggetto WebSocket
 
@@ -355,14 +363,49 @@ function draw() {
   ctx.beginPath(); ctx.arc(CX, CY, 8, 0, 2 * Math.PI);
   ctx.fillStyle = 'rgba(240,140,39,0.25)'; ctx.fill();
 
-  // ── AGGIORNA ANGOLO SWEEP (animazione temporizzata) ──
+    // ── AGGIORNA SWEEP CON ACCELERAZIONE/DECELERAZIONE ──
   const frameTime = performance.now();
   const dt = frameTime - lastFrameTime;
   lastFrameTime = frameTime;
 
-  sweep += sweepDir * SWEEP_SPEED_DEG_PER_MS * dt; // Muovi sweep in base a dt
-  if (sweep >= 180) { sweep = 180; sweepDir = -1; } // Inversione a destra
-  else if (sweep <= 0) { sweep = 0; sweepDir = 1; } // Inversione a sinistra
+  // Calcola distanza dai bordi per gestire decelerazione
+  const distToEdge = sweepDir > 0 ? (180 - sweep) : sweep;
+  const isApproachingEdge = distToEdge <= SWEEP_DECEL_DIST;
+
+  if (isApproachingEdge) {
+    // Decelera dolcemente verso il bordo
+    sweepSpeed -= SWEEP_ACCEL * dt * 2; // decel più forte
+    if (sweepSpeed < 0.01) sweepSpeed = 0.01; // minimo movimento
+  } else {
+    // Accelera verso velocità massima
+    if (sweepSpeed < SWEEP_MAX_SPEED) {
+      sweepSpeed += SWEEP_ACCEL * dt;
+      if (sweepSpeed > SWEEP_MAX_SPEED) sweepSpeed = SWEEP_MAX_SPEED;
+    }
+  }
+
+  // Aggiorna angolo
+  sweep += sweepDir * sweepSpeed * dt;
+
+  // Gestione inversione ai bordi con pausa
+  if (sweep >= 180) {
+    sweep = 180;
+    sweepDir = -1;
+    sweepSpeed = 0; // reset velocità per ripartenza da fermo
+    // Pausa di 1 secondo ai bordi (come richiesto)
+    setTimeout(() => { if (sweep === 180 && sweepDir === -1) sweepSpeed = 0.01; }, 1000);
+  } else if (sweep <= 0) {
+    sweep = 0;
+    sweepDir = 1;
+    sweepSpeed = 0;
+    setTimeout(() => { if (sweep === 0 && sweepDir === 1) sweepSpeed = 0.01; }, 1000);
+  }
+
+  // Debug: mostra velocità corrente (rimuovi in produzione)
+  // ctx.fillStyle = '#6a5a4a';
+  // ctx.font = '10px JetBrains Mono';
+  // ctx.textAlign = 'left';
+  // ctx.fillText(`Speed: ${sweepSpeed.toFixed(3)}°/ms`, 10, 20);
 
   requestAnimationFrame(draw); // Prossimo frame
 }
