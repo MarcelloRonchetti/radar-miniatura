@@ -201,6 +201,7 @@ function polarToXY(angleDeg, distCm) {
 // ── Stato ───────────────────────────────────────────────────
 const pts = [];
 let sweep = 90, sweepDir = 1;
+let sweepSynced = false;
 let isSimulating = false, simInterval = null;
 let n = 0, minDist = Infinity, maxDist = -Infinity, alertCount = 0;
 let ws = null;
@@ -265,17 +266,29 @@ function draw() {
   // ── Sweep ──
   const sr  = Math.PI - (sweep / 180) * Math.PI;
   const fan = 6 * (Math.PI / 180);
+  const trailAngle = 16 * (Math.PI / 180);
+
   ctx.beginPath();
   ctx.moveTo(CX, CY);
   ctx.arc(CX, CY, R, sr - fan, sr + fan);
   ctx.closePath();
   ctx.fillStyle = 'rgba(240,140,39,0.07)';
   ctx.fill();
+
+  // subtle trailing line effect behind current sweep
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, sr - trailAngle, sr);
+  ctx.strokeStyle = 'rgba(240,140,39,0.18)';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
   ctx.beginPath();
   ctx.moveTo(CX, CY);
   ctx.lineTo(CX + R * Math.cos(sr), CY - R * Math.sin(sr));
-  ctx.strokeStyle = 'rgba(240,140,39,0.6)';
+  ctx.strokeStyle = 'rgba(240,140,39,0.8)';
   ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
   ctx.stroke();
 
   // ── Punti ──
@@ -323,7 +336,11 @@ function addPoint(angleDeg, distCm) {
   const a = parseFloat(angleDeg);
   const d = parseFloat(distCm);
   if (isNaN(a) || isNaN(d)) return;
-  // Ignore detection for sweep position: line moves independently from rilevamento
+  if (!sweepSynced) {
+    sweep = a;
+    sweepDir = (a >= 180 || a <= 0) ? 1 : 1;
+    sweepSynced = true;
+  }
   const { x, y } = polarToXY(a, d);
   pts.push({ x, y, alpha: 1, dist: d, ts: Date.now() });
 }
