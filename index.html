@@ -323,7 +323,7 @@ function addPoint(angleDeg, distCm) {
   const a = parseFloat(angleDeg);
   const d = parseFloat(distCm);
   if (isNaN(a) || isNaN(d)) return;
-  sweep = a;
+  // Ignore detection for sweep position: line moves independently from rilevamento
   const { x, y } = polarToXY(a, d);
   pts.push({ x, y, alpha: 1, dist: d, ts: Date.now() });
 }
