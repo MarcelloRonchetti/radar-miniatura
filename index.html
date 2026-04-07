@@ -2,156 +2,447 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radar Miniatura</title>
+<link href="https://cdn.jsdelivr.net/npm/fontsource-jetbrains-mono@5.1.0/400.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/fontsource-jetbrains-mono@5.1.0/300.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/fontsource-jetbrains-mono@5.1.0/500.css" rel="stylesheet">
 <style>
-  body { background:#0a0a0a; color:#0f0; font-family:monospace; padding:20px; }
-  .radar-box { width:100%; max-width:400px; height:200px; background:#000; border:1px solid #333; margin:10px 0; position:relative; }
-  canvas { display:block; width:100%; height:100%; }
-  table { width:100%; border-collapse:collapse; margin:10px 0; }
-  th, td { border:1px solid #333; padding:4px; text-align:left; }
-  .btn { background:#111; color:#0f0; border:1px solid #0f0; padding:5px 10px; cursor:pointer; margin-right:5px; }
-  .row { display:flex; gap:12px; margin:6px 0; flex-wrap:wrap; }
+  :root {
+    --bg:        #080808;
+    --surface:   #141414;
+    --border:    #2c2c2c;
+    --accent:    #f08c27;
+    --accent-dim:#9b570d;
+    --text:      #e8e2d3;
+    --text-dim:  #9a8f84;
+    --green:     #4fb961;
+    --red:       #f85149;
+    --yellow:    #fbbf24;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; font-family:'JetBrains Mono',monospace; font-size:13px; }
+  body { background:var(--bg); color:var(--text); display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+  header { flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:12px 24px; border-bottom:1px solid var(--border); background:var(--surface); gap:16px; }
+  .logo { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:500; letter-spacing:0.15em; text-transform:uppercase; }
+  .logo-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); opacity:0.9; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+  .status { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-dim); }
+  .status-dot { width:7px; height:7px; border-radius:50%; background:var(--red); transition:all 0.4s; box-shadow:0 0 4px var(--red); }
+  .status-dot.on { background:var(--green); box-shadow:0 0 4px var(--green); }
+  .status-dot.connecting { background:var(--yellow); box-shadow:0 0 4px var(--yellow); }
+  .header-controls { display:flex; gap:10px; align-items:center; }
+  .header-btn { background:transparent; border:1px solid var(--border); color:var(--text-dim); padding:4px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:4px; transition:all 0.2s; }
+  .header-btn:hover { border-color:var(--accent-dim); color:var(--accent); }
+  .header-btn.active { background:var(--accent-dim); color:var(--bg); border-color:var(--accent); }
+
+  #cfgBanner { flex-shrink:0; background:var(--surface); border-bottom:1px solid var(--border); padding:10px 24px; display:none; align-items:center; gap:12px; font-size:12px; color:var(--text-dim); }
+  #cfgBanner input { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:4px; width:300px; outline:none; }
+  #cfgBanner input:focus { border-color:var(--accent); }
+  #cfgBanner button { background:var(--accent-dim); border:none; color:var(--accent); padding:6px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:4px; cursor:pointer; }
+  #cfgBanner button:hover { background:var(--accent); color:var(--bg); }
+
+  .main { flex:1; display:flex; min-height:0; overflow:hidden; }
+
+  .radar-panel { flex:1; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; background:radial-gradient(circle at center, rgba(240,140,39,0.03) 0%, var(--bg) 70%); }
+  #radarCanvas { display:block; max-width:100%; max-height:100%; }
+  .radar-controls { position:absolute; bottom:24px; left:24px; display:flex; gap:10px; }
+  .radar-control-btn { background:rgba(20,20,20,0.8); border:1px solid var(--border); color:var(--text-dim); padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:10px; cursor:pointer; border-radius:4px; transition:all 0.2s; }
+  .radar-control-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+  .side { width:320px; flex-shrink:0; border-left:1px solid var(--border); display:flex; flex-direction:column; background:var(--surface); overflow:hidden; }
+  .card { flex-shrink:0; border-bottom:1px solid var(--border); padding:20px; }
+  .card-label { font-size:10px; letter-spacing:0.2em; color:var(--text-dim); margin-bottom:16px; text-transform:uppercase; }
+  .det-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .det-key { font-size:11px; color:var(--text-dim); }
+  .det-val { font-size:28px; font-weight:300; color:var(--accent); transition:all 0.3s; }
+  .det-unit { font-size:11px; color:var(--text-dim); margin-left:3px; }
+  .det-time { font-size:10px; color:var(--text-dim); margin-top:4px; }
+  .det-val.alert { color:var(--red); }
+  .det-val.warning { color:var(--yellow); }
+  .metrics-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .metric-item { background:var(--bg); padding:10px; border-radius:4px; border:1px solid var(--border); }
+  .metric-label { font-size:9px; color:var(--text-dim); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.1em; }
+  .metric-value { font-size:16px; color:var(--text); font-weight:500; }
+  .counter { flex-shrink:0; padding:8px 20px; font-size:10px; color:var(--text-dim); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .history-stats { display:flex; gap:8px; }
+  .history-stat { background:var(--bg); padding:2px 6px; border-radius:2px; font-size:9px; }
+  .storico-wrap { flex:1; overflow-y:auto; min-height:0; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+  .storico-wrap::-webkit-scrollbar { width:4px; }
+  .storico-wrap::-webkit-scrollbar-track { background:var(--bg); }
+  .storico-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  table { width:100%; border-collapse:collapse; }
+  th { position:sticky; top:0; background:var(--surface); font-size:10px; letter-spacing:0.15em; color:var(--text-dim); padding:10px 16px; text-align:left; font-weight:400; border-bottom:1px solid var(--border); text-transform:uppercase; }
+  td { padding:8px 16px; font-size:11px; border-bottom:1px solid rgba(44,44,44,0.5); }
+  tr:hover td { background:rgba(240,140,39,0.03); }
+  td.ang { color:var(--accent); }
+  td.dist { color:var(--text); }
+  td.dist.alert { color:var(--red); }
+  td.time { color:var(--text-dim); font-size:10px; }
+  .footer-btns { flex-shrink:0; padding:12px 20px; display:flex; gap:8px; border-top:1px solid var(--border); background:var(--surface); }
+  .btn { flex:1; padding:8px; background:none; border:1px solid var(--border); color:var(--text-dim); font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; border-radius:4px; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .btn:hover { border-color:var(--accent-dim); color:var(--accent); }
+  .btn-danger:hover { border-color:var(--red); color:var(--red); }
+
+  @media (max-width:900px) {
+    .main { flex-direction:column; }
+    .side { width:100%; border-left:none; border-top:1px solid var(--border); max-height:40vh; }
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation:fadeIn 0.2s ease-out; }
 </style>
 </head>
 <body>
 
-<h2>Radar Miniatura</h2>
-<div id="status">RADAR MINIATURA offline ⚙</div>
-<div>server ngrok: <span id="ngrok"></span></div>
+<header>
+  <div class="logo"><div class="logo-dot"></div>RADAR MINIATURA</div>
+  <div class="status"><div class="status-dot" id="sDot"></div><span id="sTxt">offline</span></div>
+  <div class="header-controls">
+    <button type="button" class="header-btn" id="btnConfig" onclick="showConfig()">⚙</button>
+  </div>
+</header>
 
-<div class="row">
-  <button id="btnConnect" class="btn">connetti</button>
-  <button id="btnClear" class="btn">✕ Svuota radar</button>
+<div id="cfgBanner">
+  server ngrok:
+  <input type="text" id="srvInput" placeholder="https://xxxx.ngrok-free.app">
+  <button type="button" onclick="saveServer()">connetti</button>
+  <button type="button" onclick="hideConfig()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 10px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;">✕</button>
 </div>
 
-<div class="radar-box">
-  <canvas id="c"></canvas>
-</div>
-
-<div class="row">
-  <span id="m1">Ultimo Rilevamento Angolo — °</span>
-  <span id="m2">Distanza — cm</span>
-</div>
-<div class="row">
-  <span id="m3">Min — Max — 0 rilevamenti</span>
-  <span id="m4">Ø — ⚠ 0</span>
-</div>
-
-<table>
-  <thead><tr><th>Ora</th><th>Ang</th><th>Dist</th></tr></thead>
-  <tbody id="tb">
-    <tr><td>Nessun dato</td><td>Nessun dato</td><td>Nessun dato</td></tr>
-  </tbody>
-</table>
-
-<div class="row">
-  <button id="btnHistory" class="btn">↺ Storico</button>
-  <button id="btnDelete" class="btn">✕ Cancella</button>
+<div class="main">
+  <div class="radar-panel">
+    <canvas id="radarCanvas"></canvas>
+    <div class="radar-controls">
+      <button type="button" class="radar-control-btn" onclick="clearRadar()">Svuota radar</button>
+    </div>
+  </div>
+  <div class="side">
+    <div class="card">
+      <div class="card-label">Ultimo Rilevamento</div>
+      <div class="det-row">
+        <span class="det-key">Angolo</span>
+        <span><span class="det-val" id="dAng">—</span><span class="det-unit">°</span></span>
+      </div>
+      <div class="det-row">
+        <span class="det-key">Distanza</span>
+        <span><span class="det-val" id="dDist">—</span><span class="det-unit">cm</span></span>
+      </div>
+      <div class="det-time" id="dTime">—</div>
+      <div class="metrics-grid">
+        <div class="metric-item"><div class="metric-label">Min</div><div class="metric-value" id="dMin">—</div></div>
+        <div class="metric-item"><div class="metric-label">Max</div><div class="metric-value" id="dMax">—</div></div>
+      </div>
+    </div>
+    <div class="counter">
+      <span id="counter">0 rilevamenti</span>
+      <div class="history-stats">
+        <div class="history-stat" id="statAvg">Ø —</div>
+        <div class="history-stat" id="statAlert">⚠ 0</div>
+      </div>
+    </div>
+    <div class="storico-wrap">
+      <table>
+        <thead><tr><th>Ora</th><th>Ang</th><th>Dist</th></tr></thead>
+        <tbody id="tbody">
+          <tr class="placeholder-row"><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px 0;">Nessun dato</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer-btns">
+      <button type="button" class="btn" onclick="loadHistory()">↺ Storico</button>
+      <button type="button" class="btn btn-danger" onclick="clearHistory()">✕ Cancella</button>
+    </div>
+  </div>
 </div>
 
 <script>
-  // ─── CANVAS SETUP ─────────────────────────────────────
-  const c = document.getElementById('c');
-  const ctx = c.getContext('2d');
-  function resize() { c.width = c.parentElement.clientWidth; c.height = c.parentElement.clientHeight; }
-  resize(); window.onresize = resize;
+// ── Costanti ────────────────────────────────────────────────
+const MAX_DIST  = 200;   // ← 200cm
+const MAX_ANGLE = 180;
+const POINT_LIFE = 5000; // ms fade
 
-  // ─── STATO RADAR ──────────────────────────────────────
-  let ang = 0, dir = 1, lastT = 0;
-  let stutterEnd = 0, edgePauseEnd = 0;
-  let detections = [];
-  const speed = 0.05; // gradi/ms (regola velocità scansione)
+// ── Canvas ──────────────────────────────────────────────────
+const canvas = document.getElementById('radarCanvas');
+const ctx    = canvas.getContext('2d');
+let W, H, CX, CY, R;
 
-  // ─── LOOP ANIMAZIONE ──────────────────────────────────
-  function loop(t) {
-    if (!lastT) lastT = t;
-    const dt = t - lastT; lastT = t;
-    const now = Date.now();
-    const w = c.width, h = c.height, cx = w / 2, cy = h, r = w / 2;
+function resizeCanvas() {
+  const panel  = document.querySelector('.radar-panel');
+  const avail  = Math.min(panel.clientWidth - 48, panel.clientHeight - 48, 820);
+  const ratio  = window.devicePixelRatio || 1;
+  canvas.style.width  = avail + 'px';
+  canvas.style.height = avail + 'px';
+  canvas.width  = Math.round(avail * ratio);
+  canvas.height = Math.round(avail * ratio);
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  W  = avail;
+  H  = avail;
+  CX = W / 2;
+  // ↓ CY più in alto per fare spazio alle etichette gradi SOTTO la baseline
+  CY = H - 30;
+  R  = Math.min(CX - 30, CY - 16);
+}
+resizeCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); });
 
-    // Sfondo
-    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+// ── Conversione polare → canvas ─────────────────────────────
+// 0°=sinistra, 90°=sopra, 180°=destra
+// y canvas cresce verso il basso → usiamo CY - r*sin
+function polarToXY(angleDeg, distCm) {
+  const rad = Math.PI - (angleDeg / MAX_ANGLE) * Math.PI;
+  const r   = (Math.min(distCm, MAX_DIST) / MAX_DIST) * R;
+  return {
+    x: CX + r * Math.cos(rad),
+    y: CY - r * Math.sin(rad)
+  };
+}
 
-    // Griglia semicerchi
-    ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
-    for (let i = 1; i <= 4; i++) {
-      ctx.beginPath(); ctx.arc(cx, cy, r * i / 4, 0, Math.PI); ctx.stroke();
-    }
+// ── Stato ───────────────────────────────────────────────────
+const pts = [];
+let sweep = 90, sweepDir = 1;
+let isSimulating = false, simInterval = null;
+let n = 0, minDist = Infinity, maxDist = -Infinity, alertCount = 0;
+let ws = null;
 
-    // Punti rilevati
-    detections.forEach(d => {
-      const rad = d.a * Math.PI / 180;
-      const dist = Math.min(d.d, 200);
-      const x = cx + Math.cos(rad) * (dist / 200) * r;
-      const y = cy - Math.sin(rad) * (dist / 200) * r;
-      ctx.fillStyle = '#ff0'; ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
-    });
+// ── Draw ────────────────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#080808';
+  ctx.fillRect(0, 0, W, H);
 
-    // Aggiorna angolo (solo se non in stutter o pausa bordo)
-    if (now >= stutterEnd && now >= edgePauseEnd) {
-      ang += dir * speed * dt;
-      if (ang >= 180) { ang = 180; dir = -1; edgePauseEnd = now + 1000; } // ⏸️ 1s a 180°
-      if (ang <= 0)   { ang = 0;   dir = 1;  edgePauseEnd = now + 1000; } // ⏸️ 1s a 0°
-    }
+  // ── Cerchi distanza ──
+  // Etichette cm: dentro al grafico, vicino al cerchio, lato destro
+  const ringDists = [50, 100, 150, 200];
+  ringDists.forEach(d => {
+    const rr = (d / MAX_DIST) * R;
+    ctx.beginPath();
+    ctx.arc(CX, CY, rr, Math.PI, 2 * Math.PI);
+    ctx.strokeStyle = '#2c2c2c';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Etichetta cm dentro il grafico (angolo 15°, vicino al cerchio)
+    const lrad = Math.PI - (15 / 180) * Math.PI;
+    ctx.fillStyle = '#4a4040';
+    ctx.font = '10px JetBrains Mono';
+    ctx.textAlign = 'left';
+    ctx.fillText(d + 'cm', CX + rr * Math.cos(lrad) + 3, CY - rr * Math.sin(lrad));
+  });
 
-    // Linea di scansione
-    const rad = ang * Math.PI / 180;
-    ctx.strokeStyle = '#0f0'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + Math.cos(rad) * r, cy - Math.sin(rad) * r);
+  // ── Linee angolari + etichette SOTTO la baseline ──
+  const angles = [0, 30, 60, 90, 120, 150, 180];
+  angles.forEach(a => {
+    const rad = Math.PI - (a / 180) * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(CX + R * Math.cos(rad), CY - R * Math.sin(rad));
+    ctx.strokeStyle = '#2c2c2c';
+    ctx.lineWidth = 0.7;
     ctx.stroke();
 
-    requestAnimationFrame(loop);
+    // Etichetta gradi: SOTTO la baseline (CY + offset)
+    // I punti 0° e 180° sono sulla linea base, gli altri escono sopra
+    // Le etichette le mettiamo tutte in basso, appena sotto CY
+    const lx = CX + (R + 6) * Math.cos(rad);
+    // per 90° il punto finisce in cima, le etichette solo per angoli vicini alla base
+    // mettiamo tutte le etichette sotto CY
+    ctx.fillStyle = '#6a5a4a';
+    ctx.font = '11px JetBrains Mono';
+    ctx.textAlign = 'center';
+    // Posizione X calcolata sul punto in cui la linea tocca la base estesa
+    // Usiamo direttamente lx (proiezione sul raggio esteso) e CY + 16
+    ctx.fillText(a + '°', lx, CY + 18);
+  });
+
+  // ── Linea base ──
+  ctx.beginPath();
+  ctx.moveTo(CX - R - 20, CY);
+  ctx.lineTo(CX + R + 20, CY);
+  ctx.strokeStyle = '#3a2a1a';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // ── Sweep ──
+  const sr  = Math.PI - (sweep / 180) * Math.PI;
+  const fan = 6 * (Math.PI / 180);
+  ctx.beginPath();
+  ctx.moveTo(CX, CY);
+  ctx.arc(CX, CY, R, sr - fan, sr + fan);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(240,140,39,0.07)';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(CX, CY);
+  ctx.lineTo(CX + R * Math.cos(sr), CY - R * Math.sin(sr));
+  ctx.strokeStyle = 'rgba(240,140,39,0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // ── Punti ──
+  const now = Date.now();
+  for (let i = pts.length - 1; i >= 0; i--) {
+    const p = pts[i];
+    const age = now - p.ts;
+    p.alpha = Math.max(0, 1 - age / POINT_LIFE);
+    if (p.alpha <= 0) { pts.splice(i, 1); continue; }
+
+    const isAlert = p.dist < 30;
+    const base = isAlert ? '248,81,73' : '240,140,39';
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 10, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(${base},${p.alpha * 0.15})`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(${base},${p.alpha})`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 1.5, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(255,220,180,${p.alpha})`;
+    ctx.fill();
   }
-  requestAnimationFrame(loop);
 
-  // ─── WEBSOCKET & UI ───────────────────────────────────
-  let ws;
-  document.getElementById('btnConnect').onclick = () => {
-    if (ws) return;
-    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-    ws = new WebSocket(`${proto}://${location.host}`);
-    
-    ws.onopen = () => document.getElementById('status').textContent = 'RADAR MINIATURA online 🟢';
-    ws.onclose = () => { ws = null; document.getElementById('status').textContent = 'RADAR MINIATURA offline ⚙'; };
-    ws.onmessage = e => {
-      try {
-        const d = JSON.parse(e.data);
-        if (d.angolo !== undefined && d.distanza !== undefined) {
-          // Aggiungi punto
-          detections.unshift({ a: d.angolo, d: d.distanza });
-          if (detections.length > 100) detections.pop();
-          
-          // ⚡ Stutter su ogni rilevamento
-          stutterEnd = Date.now() + 150;
+  // ── Centro ──
+  ctx.beginPath(); ctx.arc(CX, CY, 4, 0, 2 * Math.PI);
+  ctx.fillStyle = '#f08c27'; ctx.fill();
+  ctx.beginPath(); ctx.arc(CX, CY, 8, 0, 2 * Math.PI);
+  ctx.fillStyle = 'rgba(240,140,39,0.25)'; ctx.fill();
 
-          // Aggiorna metriche
-          document.getElementById('m1').textContent = `Ultimo Rilevamento Angolo ${d.angolo}°`;
-          document.getElementById('m2').textContent = `Distanza ${d.distanza} cm`;
-          
-          // Aggiorna tabella
-          const tb = document.getElementById('tb');
-          const time = new Date().toLocaleTimeString('it-IT');
-          tb.innerHTML = `<tr><td>${time}</td><td>${d.angolo}</td><td>${d.distanza}</td></tr>` + tb.innerHTML;
-          if (tb.rows.length > 10) tb.deleteRow(tb.rows.length - 1);
-          if (tb.rows[0] && tb.rows[0].cells[0].textContent.includes('Nessun')) tb.deleteRow(0);
-        }
-      } catch (err) {}
-    };
+  // Avanza sweep
+  sweep += sweepDir * 0.6;
+  if (sweep >= 180) { sweep = 180; sweepDir = -1; }
+  else if (sweep <= 0) { sweep = 0; sweepDir = 1; }
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+// ── Aggiungi punto ──────────────────────────────────────────
+function addPoint(angleDeg, distCm) {
+  const a = parseFloat(angleDeg);
+  const d = parseFloat(distCm);
+  if (isNaN(a) || isNaN(d)) return;
+  sweep = a;
+  const { x, y } = polarToXY(a, d);
+  pts.push({ x, y, alpha: 1, dist: d, ts: Date.now() });
+}
+
+// ── Server config ───────────────────────────────────────────
+function getServer() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('server')) localStorage.setItem('rs', p.get('server'));
+  return localStorage.getItem('rs');
+}
+function saveServer() {
+  const v = document.getElementById('srvInput').value.trim().replace(/\/$/, '');
+  if (!v) return;
+  localStorage.setItem('rs', v);
+  hideConfig(); init();
+}
+function showConfig() { document.getElementById('cfgBanner').style.display = 'flex'; }
+function hideConfig() { document.getElementById('cfgBanner').style.display = 'none'; }
+
+// ── WebSocket ───────────────────────────────────────────────
+function connectWS(srv) {
+  if (ws) ws.close();
+  document.getElementById('sDot').classList.add('connecting');
+  document.getElementById('sTxt').textContent = 'connessione...';
+  ws = new WebSocket(srv.replace(/^http/, 'ws'));
+  ws.onopen = () => {
+    document.getElementById('sDot').classList.remove('connecting');
+    document.getElementById('sDot').classList.add('on');
+    document.getElementById('sTxt').textContent = 'online · ' + srv.replace(/^https?:\/\//, '');
   };
-
-  document.getElementById('btnClear').onclick = () => {
-    detections = [];
-    document.getElementById('tb').innerHTML = '<tr><td>Nessun dato</td><td>Nessun dato</td><td>Nessun dato</td></tr>';
+  ws.onmessage = e => {
+    try {
+      const d = JSON.parse(e.data);
+      addPoint(d.angolo, d.distanza);
+      updateLast(d);
+      addRow(d, true);
+      updateStats(parseFloat(d.distanza));
+      n++; document.getElementById('counter').textContent = n + ' rilevamenti';
+    } catch(err) { console.error(err); }
   };
-
-  document.getElementById('btnHistory').onclick = () => {
-    fetch('/api/storico?limit=50').then(r => r.json()).then(console.log);
+  ws.onclose = () => {
+    document.getElementById('sDot').classList.remove('on', 'connecting');
+    document.getElementById('sTxt').textContent = 'offline';
+    setTimeout(() => connectWS(srv), 4000);
   };
+  ws.onerror = () => ws.close();
+}
 
-  document.getElementById('btnDelete').onclick = () => {
-    if (confirm('Cancellare storico?')) fetch('/api/storico', { method: 'DELETE' }).then(r => r.json()).then(res => alert(`Eliminati: ${res.eliminati}`));
-  };
+// ── UI ──────────────────────────────────────────────────────
+function updateLast(d) {
+  const ae = document.getElementById('dAng');
+  const de = document.getElementById('dDist');
+  ae.textContent = parseFloat(d.angolo).toFixed(1);
+  de.textContent = d.distanza;
+  document.getElementById('dTime').textContent = new Date(d.timestamp).toLocaleTimeString('it-IT');
+  de.classList.remove('alert', 'warning');
+  if (d.distanza < 30) de.classList.add('alert');
+  else if (d.distanza < 60) de.classList.add('warning');
+}
+
+function updateStats(dist) {
+  if (dist < minDist) { minDist = dist; document.getElementById('dMin').textContent = dist.toFixed(0); }
+  if (dist > maxDist) { maxDist = dist; document.getElementById('dMax').textContent = dist.toFixed(0); }
+  if (dist < 30) { alertCount++; document.getElementById('statAlert').textContent = '⚠ ' + alertCount; }
+  if (minDist !== Infinity && maxDist !== -Infinity)
+    document.getElementById('statAvg').textContent = 'Ø ' + ((minDist + maxDist) / 2).toFixed(0);
+}
+
+function addRow(d, pre) {
+  const ph = document.querySelector('.placeholder-row');
+  if (ph) ph.remove();
+  const tr = document.createElement('tr');
+  tr.classList.add('fade-in');
+  tr.innerHTML = `<td class="time">${new Date(d.timestamp).toLocaleTimeString('it-IT')}</td>
+    <td class="ang">${parseFloat(d.angolo).toFixed(1)}°</td>
+    <td class="${d.distanza < 30 ? 'dist alert' : 'dist'}">${d.distanza} cm</td>`;
+  const tb = document.getElementById('tbody');
+  if (pre) tb.insertBefore(tr, tb.firstChild); else tb.appendChild(tr);
+  while (tb.children.length > 100) tb.removeChild(tb.lastChild);
+}
+
+async function loadHistory() {
+  const srv = getServer(); if (!srv) return;
+  try {
+    const data = await (await fetch(srv + '/api/storico?limit=50')).json();
+    document.getElementById('tbody').innerHTML = '';
+    minDist = Infinity; maxDist = -Infinity; alertCount = 0;
+    data.forEach(d => { addRow(d, false); updateStats(parseFloat(d.distanza)); });
+    data.slice(0, 40).forEach(d => addPoint(d.angolo, d.distanza));
+    n = data.length;
+    document.getElementById('counter').textContent = n + ' rilevamenti';
+  } catch(e) { console.error('loadHistory:', e); }
+}
+
+async function clearHistory() {
+  const srv = getServer();
+  if (!srv) { alert('Server non configurato'); return; }
+  if (!confirm('Cancellare tutto lo storico?')) return;
+  try {
+    const r = await fetch(srv + '/api/storico', { method: 'DELETE' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch(e) { alert('Errore: ' + e.message); return; }
+  document.getElementById('tbody').innerHTML = '<tr class="placeholder-row"><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px 0;">Nessun dato</td></tr>';
+  pts.length = 0; n = 0; minDist = Infinity; maxDist = -Infinity; alertCount = 0;
+  ['dAng','dDist','dTime','dMin','dMax'].forEach(id => document.getElementById(id).textContent = '—');
+  document.getElementById('counter').textContent = '0 rilevamenti';
+  document.getElementById('statAvg').textContent = 'Ø —';
+  document.getElementById('statAlert').textContent = '⚠ 0';
+}
+
+function clearRadar() { pts.length = 0; }
+
+// ── Init ─────────────────────────────────────────────────────
+function init() {
+  const srv = getServer();
+  if (!srv) { document.getElementById('cfgBanner').style.display = 'flex'; return; }
+  connectWS(srv); loadHistory();
+}
+init();
 </script>
 </body>
 </html>
