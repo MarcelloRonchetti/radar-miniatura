@@ -183,11 +183,11 @@
 // ── Costanti ────────────────────────────────────────────────
 const MAX_DIST  = 200;
 const MAX_ANGLE = 180;
-const POINT_LIFE = 5000;
+const POINT_LIFE = 5000; // ms prima che un punto scompaia (fade-out)
 
 // Tempo totale per una scansione completa 0°→180°→0° (inclusa accelerazione)
-const SWEEP_CYCLE_MS = 10400;      // tempo totale 0°→180°→0°
-const SWEEP_MAX_SPEED = 0.12;     // deg/ms (≈400 steps/s convertiti)
+const SWEEP_CYCLE_MS = 5200;      // tempo totale 0°→180°→0°
+const SWEEP_MAX_SPEED = 0.06;     // deg/ms (≈400 steps/s convertiti)
 const SWEEP_ACCEL = 0.00035;      // deg/ms² (≈150 steps/s² convertiti)
 const SWEEP_DECEL_DIST = 15;      // gradi di frenata
 
@@ -496,7 +496,7 @@ function updateLast(d) {
 // ── AGGIORNAMENTO STATISTICHE (min/max/medio/alert) ─────────────
 function updateStats(dist) {
   if (dist < minDist) { minDist = dist; document.getElementById('dMin').textContent = dist.toFixed(0); }
-  if (dist > maxDist) { maxDist = dist; document.getElementById('dMax').textContent = dist.toFixed(0); }
+  if (dist > maxDist) { maxDist = dist; document.getElementById('dMax').textContent = dist.toFixed(0); }8;  
   if (dist < 30) { alertCount++; document.getElementById('statAlert').textContent = '⚠ ' + alertCount; }
   if (minDist !== Infinity && maxDist !== -Infinity)
     document.getElementById('statAvg').textContent = 'Ø ' + ((minDist + maxDist) / 2).toFixed(0);
