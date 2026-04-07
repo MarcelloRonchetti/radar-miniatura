@@ -4,26 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radar Miniatura</title>
+<!-- Font monospaziato per stile terminale/strumentazione -->
 <link href="https://cdn.jsdelivr.net/npm/fontsource-jetbrains-mono@5.1.0/400.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/fontsource-jetbrains-mono@5.1.0/300.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/fontsource-jetbrains-mono@5.1.0/500.css" rel="stylesheet">
 <style>
+  /* ─── VARIABILI CSS (tema scuro, accento arancione) ───────────────── */
   :root {
-    --bg:        #080808;
-    --surface:   #141414;
-    --border:    #2c2c2c;
-    --accent:    #f08c27;
-    --accent-dim:#9b570d;
-    --text:      #e8e2d3;
-    --text-dim:  #9a8f84;
-    --green:     #4fb961;
-    --red:       #f85149;
-    --yellow:    #fbbf24;
+    --bg:        #080808;      /* Sfondo principale */
+    --surface:   #141414;      /* Pannelli/card */
+    --border:    #2c2c2c;      /* Bordi e separatori */
+    --accent:    #f08c27;      /* Colore principale (arancione radar) */
+    --accent-dim:#9b570d;      /* Accento scuro per hover */
+    --text:      #e8e2d3;      /* Testo principale */
+    --text-dim:  #9a8f84;      /* Testo secondario/diminuito */
+    --green:     #4fb961;      /* Stato online */
+    --red:       #f85149;      /* Stato offline / allerta */
+    --yellow:    #fbbf24;      /* Stato connecting / warning */
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { height:100%; font-family:'JetBrains Mono',monospace; font-size:13px; }
   body { background:var(--bg); color:var(--text); display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 
+  /* ─── HEADER: logo, stato connessione, bottoni ───────────────────── */
   header { flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:12px 24px; border-bottom:1px solid var(--border); background:var(--surface); gap:16px; }
   .logo { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:500; letter-spacing:0.15em; text-transform:uppercase; }
   .logo-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); opacity:0.9; animation:pulse 2s infinite; }
@@ -37,20 +40,24 @@
   .header-btn:hover { border-color:var(--accent-dim); color:var(--accent); }
   .header-btn.active { background:var(--accent-dim); color:var(--bg); border-color:var(--accent); }
 
+  /* ─── BANNER CONFIGURAZIONE SERVER (nascosto di default) ─────────── */
   #cfgBanner { flex-shrink:0; background:var(--surface); border-bottom:1px solid var(--border); padding:10px 24px; display:none; align-items:center; gap:12px; font-size:12px; color:var(--text-dim); }
   #cfgBanner input { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:4px; width:300px; outline:none; }
   #cfgBanner input:focus { border-color:var(--accent); }
   #cfgBanner button { background:var(--accent-dim); border:none; color:var(--accent); padding:6px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:4px; cursor:pointer; }
   #cfgBanner button:hover { background:var(--accent); color:var(--bg); }
 
+  /* ─── LAYOUT PRINCIPALE: radar a sinistra, sidebar a destra ──────── */
   .main { flex:1; display:flex; min-height:0; overflow:hidden; }
 
+  /* ─── PANNELLO RADAR: canvas centrato con controlli ─────────────── */
   .radar-panel { flex:1; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; background:radial-gradient(circle at center, rgba(240,140,39,0.03) 0%, var(--bg) 70%); }
   #radarCanvas { display:block; max-width:100%; max-height:100%; }
   .radar-controls { position:absolute; bottom:24px; left:24px; display:flex; gap:10px; }
   .radar-control-btn { background:rgba(20,20,20,0.8); border:1px solid var(--border); color:var(--text-dim); padding:6px 12px; font-family:'JetBrains Mono',monospace; font-size:10px; cursor:pointer; border-radius:4px; transition:all 0.2s; }
   .radar-control-btn:hover { border-color:var(--accent); color:var(--accent); }
 
+  /* ─── SIDEBAR: metriche, tabella storico, bottoni ───────────────── */
   .side { width:320px; flex-shrink:0; border-left:1px solid var(--border); display:flex; flex-direction:column; background:var(--surface); overflow:hidden; }
   .card { flex-shrink:0; border-bottom:1px solid var(--border); padding:20px; }
   .card-label { font-size:10px; letter-spacing:0.2em; color:var(--text-dim); margin-bottom:16px; text-transform:uppercase; }
@@ -59,8 +66,8 @@
   .det-val { font-size:28px; font-weight:300; color:var(--accent); transition:all 0.3s; }
   .det-unit { font-size:11px; color:var(--text-dim); margin-left:3px; }
   .det-time { font-size:10px; color:var(--text-dim); margin-top:4px; }
-  .det-val.alert { color:var(--red); }
-  .det-val.warning { color:var(--yellow); }
+  .det-val.alert { color:var(--red); }    /* <30cm = allerta rossa */
+  .det-val.warning { color:var(--yellow); } /* <60cm = warning giallo */
   .metrics-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
   .metric-item { background:var(--bg); padding:10px; border-radius:4px; border:1px solid var(--border); }
   .metric-label { font-size:9px; color:var(--text-dim); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.1em; }
@@ -85,6 +92,7 @@
   .btn:hover { border-color:var(--accent-dim); color:var(--accent); }
   .btn-danger:hover { border-color:var(--red); color:var(--red); }
 
+  /* ─── RESPONSIVE: su schermi piccoli, sidebar sotto il radar ───── */
   @media (max-width:900px) {
     .main { flex-direction:column; }
     .side { width:100%; border-left:none; border-top:1px solid var(--border); max-height:40vh; }
@@ -95,6 +103,7 @@
 </head>
 <body>
 
+<!-- ─── HEADER: logo animato, stato connessione, bottone config ─── -->
 <header>
   <div class="logo"><div class="logo-dot"></div>RADAR MINIATURA</div>
   <div class="status"><div class="status-dot" id="sDot"></div><span id="sTxt">offline</span></div>
@@ -103,6 +112,7 @@
   </div>
 </header>
 
+<!-- ─── BANNER CONFIG: input per URL server ngrok/WebSocket ─────── -->
 <div id="cfgBanner">
   server ngrok:
   <input type="text" id="srvInput" placeholder="https://xxxx.ngrok-free.app">
@@ -110,14 +120,19 @@
   <button type="button" onclick="hideConfig()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 10px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;">✕</button>
 </div>
 
+<!-- ─── LAYOUT PRINCIPALE: radar + sidebar ─────────────────────── -->
 <div class="main">
+  <!-- Pannello radar con canvas e bottone "Svuota" -->
   <div class="radar-panel">
     <canvas id="radarCanvas"></canvas>
     <div class="radar-controls">
       <button type="button" class="radar-control-btn" onclick="clearRadar()">Svuota radar</button>
     </div>
   </div>
+  
+  <!-- Sidebar: metriche ultime, contatori, tabella storico -->
   <div class="side">
+    <!-- Card ultimo rilevamento con angolo, distanza, timestamp -->
     <div class="card">
       <div class="card-label">Ultimo Rilevamento</div>
       <div class="det-row">
@@ -129,11 +144,14 @@
         <span><span class="det-val" id="dDist">—</span><span class="det-unit">cm</span></span>
       </div>
       <div class="det-time" id="dTime">—</div>
+      <!-- Griglia metriche: min/max distanza -->
       <div class="metrics-grid">
         <div class="metric-item"><div class="metric-label">Min</div><div class="metric-value" id="dMin">—</div></div>
         <div class="metric-item"><div class="metric-label">Max</div><div class="metric-value" id="dMax">—</div></div>
       </div>
     </div>
+    
+    <!-- Barra contatore: totale rilevamenti + statistiche -->
     <div class="counter">
       <span id="counter">0 rilevamenti</span>
       <div class="history-stats">
@@ -141,6 +159,8 @@
         <div class="history-stat" id="statAlert">⚠ 0</div>
       </div>
     </div>
+    
+    <!-- Tabella storico con scroll -->
     <div class="storico-wrap">
       <table>
         <thead><tr><th>Ora</th><th>Ang</th><th>Dist</th></tr></thead>
@@ -149,6 +169,8 @@
         </tbody>
       </table>
     </div>
+    
+    <!-- Bottoni footer: carica storico / cancella -->
     <div class="footer-btns">
       <button type="button" class="btn" onclick="loadHistory()">↺ Storico</button>
       <button type="button" class="btn btn-danger" onclick="clearHistory()">✕ Cancella</button>
@@ -156,20 +178,22 @@
   </div>
 </div>
 
+<!-- ─── JAVASCRIPT: logica radar, WebSocket, UI ───────────────── -->
 <script>
-// ── Costanti ────────────────────────────────────────────────
-const MAX_DIST  = 200;   // ← 200cm
-const MAX_ANGLE = 180;
-const POINT_LIFE = 5000; // ms fade
-const SWEEP_DURATION_MS = 2000; // 0° → 180° in 2 secondi, come il motore
-const SWEEP_SPEED_DEG_PER_MS = MAX_ANGLE / SWEEP_DURATION_MS;
-let lastFrameTime = performance.now();
+// ── COSTANTI DI CONFIGURAZIONE ───────────────────────────────────
+const MAX_DIST  = 200;   // Distanza massima visualizzabile (cm)
+const MAX_ANGLE = 180;   // Angolo massimo di scansione (gradi)
+const POINT_LIFE = 5000; // Durata visiva di un punto sul radar (ms)
+const SWEEP_DURATION_MS = 2000; // Tempo per una scansione completa 0°→180° (deve coincidere con il motore)
+const SWEEP_SPEED_DEG_PER_MS = MAX_ANGLE / SWEEP_DURATION_MS; // Velocità angolare calcolata
+let lastFrameTime = performance.now(); // Timestamp ultimo frame per animazione fluida
 
-// ── Canvas ──────────────────────────────────────────────────
+// ── SETUP CANVAS ─────────────────────────────────────────────────
 const canvas = document.getElementById('radarCanvas');
 const ctx    = canvas.getContext('2d');
-let W, H, CX, CY, R;
+let W, H, CX, CY, R; // Dimensioni canvas: larghezza, altezza, centro X, centro Y, raggio
 
+// Ridimensiona canvas in base al container, gestisce DPI alti (retina)
 function resizeCanvas() {
   const panel  = document.querySelector('.radar-panel');
   const avail  = Math.min(panel.clientWidth - 48, panel.clientHeight - 48, 820);
@@ -178,54 +202,53 @@ function resizeCanvas() {
   canvas.style.height = avail + 'px';
   canvas.width  = Math.round(avail * ratio);
   canvas.height = Math.round(avail * ratio);
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0); // Scala il contesto per DPI
   W  = avail;
   H  = avail;
   CX = W / 2;
-  // ↓ CY più in alto per fare spazio alle etichette gradi SOTTO la baseline
-  CY = H - 30;
-  R  = Math.min(CX - 30, CY - 16);
+  CY = H - 30; // Centro Y spostato in basso per lasciare spazio alle etichette gradi
+  R  = Math.min(CX - 30, CY - 16); // Raggio utile (con margine)
 }
 resizeCanvas();
 window.addEventListener('resize', () => { resizeCanvas(); });
 
-// ── Conversione polare → canvas ─────────────────────────────
-// 0°=sinistra, 90°=sopra, 180°=destra
-// y canvas cresce verso il basso → usiamo CY - r*sin
+// ── CONVERSIONE POLARE → COORDINATE CANVAS ───────────────────────
+// Sistema angoli: 0°=sinistra, 90°=sopra, 180°=destra
+// Y canvas cresce verso il basso → usiamo CY - r*sin per invertire l'asse Y
 function polarToXY(angleDeg, distCm) {
-  const rad = Math.PI - (angleDeg / MAX_ANGLE) * Math.PI;
-  const r   = (Math.min(distCm, MAX_DIST) / MAX_DIST) * R;
+  const rad = Math.PI - (angleDeg / MAX_ANGLE) * Math.PI; // Converti gradi in radianti, inverti asse X
+  const r   = (Math.min(distCm, MAX_DIST) / MAX_DIST) * R; // Scala distanza in pixel
   return {
     x: CX + r * Math.cos(rad),
-    y: CY - r * Math.sin(rad)
+    y: CY - r * Math.sin(rad) // Y invertito per sistema radar
   };
 }
 
-// ── Stato ───────────────────────────────────────────────────
-const pts = [];
-let sweep = 90, sweepDir = 1;
-let sweepSynced = false;
-let isSimulating = false, simInterval = null;
-let n = 0, minDist = Infinity, maxDist = -Infinity, alertCount = 0;
-let ws = null;
+// ── STATO GLOBALE DELL'APPLICAZIONE ─────────────────────────────
+const pts = [];              // Array punti visualizzati sul radar {x,y,alpha,dist,ts}
+let sweep = 90, sweepDir = 1; // Angolo corrente della linea di scansione e direzione (+1/-1)
+let sweepSynced = false;     // Flag: sincronizza sweep con primo dato ricevuto
+let isSimulating = false, simInterval = null; // (Opzionale) simulazione dati per test
+let n = 0, minDist = Infinity, maxDist = -Infinity, alertCount = 0; // Statistiche
+let ws = null;               // Oggetto WebSocket
 
-// ── Draw ────────────────────────────────────────────────────
+// ── FUNZIONE DI DISEGNO PRINCIPALE (requestAnimationFrame) ───────
 function draw() {
+  // Pulisci canvas e ridisegna sfondo
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = '#080808';
   ctx.fillRect(0, 0, W, H);
 
-  // ── Cerchi distanza ──
-  // Etichette cm: dentro al grafico, vicino al cerchio, lato destro
+  // ── DISEGNA CERCHI DI DISTANZA (50/100/150/200 cm) ──
   const ringDists = [50, 100, 150, 200];
   ringDists.forEach(d => {
     const rr = (d / MAX_DIST) * R;
     ctx.beginPath();
-    ctx.arc(CX, CY, rr, Math.PI, 2 * Math.PI);
+    ctx.arc(CX, CY, rr, Math.PI, 2 * Math.PI); // Semicerchio superiore
     ctx.strokeStyle = '#2c2c2c';
     ctx.lineWidth = 1;
     ctx.stroke();
-    // Etichetta cm dentro il grafico (angolo 15°, vicino al cerchio)
+    // Etichetta distanza: posizionata a 15° dal centro, dentro il grafico
     const lrad = Math.PI - (15 / 180) * Math.PI;
     ctx.fillStyle = '#4a4040';
     ctx.font = '10px JetBrains Mono';
@@ -233,7 +256,7 @@ function draw() {
     ctx.fillText(d + 'cm', CX + rr * Math.cos(lrad) + 3, CY - rr * Math.sin(lrad));
   });
 
-  // ── Linee angolari + etichette SOTTO la baseline ──
+  // ── DISEGNA LINEE ANGOLARI + ETICHETTE GRADI ──
   const angles = [0, 30, 60, 90, 120, 150, 180];
   angles.forEach(a => {
     const rad = Math.PI - (a / 180) * Math.PI;
@@ -244,21 +267,15 @@ function draw() {
     ctx.lineWidth = 0.7;
     ctx.stroke();
 
-    // Etichetta gradi: SOTTO la baseline (CY + offset)
-    // I punti 0° e 180° sono sulla linea base, gli altri escono sopra
-    // Le etichette le mettiamo tutte in basso, appena sotto CY
+    // Etichetta gradi: posizionata sotto la baseline (CY + 18px)
     const lx = CX + (R + 6) * Math.cos(rad);
-    // per 90° il punto finisce in cima, le etichette solo per angoli vicini alla base
-    // mettiamo tutte le etichette sotto CY
     ctx.fillStyle = '#6a5a4a';
     ctx.font = '11px JetBrains Mono';
     ctx.textAlign = 'center';
-    // Posizione X calcolata sul punto in cui la linea tocca la base estesa
-    // Usiamo direttamente lx (proiezione sul raggio esteso) e CY + 16
     ctx.fillText(a + '°', lx, CY + 18);
   });
 
-  // ── Linea base ──
+  // ── LINEA BASE (orizzontale 0°-180°) ──
   ctx.beginPath();
   ctx.moveTo(CX - R - 20, CY);
   ctx.lineTo(CX + R + 20, CY);
@@ -266,23 +283,24 @@ function draw() {
   ctx.lineWidth = 1.2;
   ctx.stroke();
 
-  // ── Sweep ──
-  const sr  = Math.PI - (sweep / 180) * Math.PI;
-  const fan = 8 * (Math.PI / 180);
-  const trailAngle = 18 * (Math.PI / 180);
+  // ── DISEGNA LINEA DI SCANSIONE (SWEEP) CON EFFETTO VENTAGLIO ──
+  const sr  = Math.PI - (sweep / 180) * Math.PI;      // Angolo sweep in radianti
+  const fan = 8 * (Math.PI / 180);                    // Ampiezza ventaglio (8°)
+  const trailAngle = 18 * (Math.PI / 180);            // Angolo scia posteriore (18°)
 
+  // Ventaglio semitrasparente davanti alla linea
   ctx.beginPath();
   ctx.moveTo(CX, CY);
   if (sweepDir === 1) {
-    ctx.arc(CX, CY, R, sr, sr - fan, true);
+    ctx.arc(CX, CY, R, sr, sr - fan, true); // Sweep verso destra: arco antiorario
   } else {
-    ctx.arc(CX, CY, R, sr, sr + fan, false);
+    ctx.arc(CX, CY, R, sr, sr + fan, false); // Sweep verso sinistra: arco orario
   }
   ctx.closePath();
   ctx.fillStyle = 'rgba(240,140,39,0.08)';
   ctx.fill();
 
-  // subtle trailing line effect behind current sweep
+  // Scia posteriore più lunga per effetto motion blur
   ctx.beginPath();
   if (sweepDir === 1) {
     ctx.arc(CX, CY, R, sr + trailAngle, sr, true);
@@ -294,6 +312,7 @@ function draw() {
   ctx.lineCap = 'round';
   ctx.stroke();
 
+  // Linea principale dello sweep (luminosa)
   ctx.beginPath();
   ctx.moveTo(CX, CY);
   ctx.lineTo(CX + R * Math.cos(sr), CY - R * Math.sin(sr));
@@ -302,65 +321,72 @@ function draw() {
   ctx.lineCap = 'round';
   ctx.stroke();
 
-  // ── Punti ──
+  // ── DISEGNA PUNTI RILEVATI (con fade-out nel tempo) ──
   const now = Date.now();
   for (let i = pts.length - 1; i >= 0; i--) {
     const p = pts[i];
     const age = now - p.ts;
-    p.alpha = Math.max(0, 1 - age / POINT_LIFE);
-    if (p.alpha <= 0) { pts.splice(i, 1); continue; }
+    p.alpha = Math.max(0, 1 - age / POINT_LIFE); // Fade lineare: 1 → 0 in POINT_LIFE ms
+    if (p.alpha <= 0) { pts.splice(i, 1); continue; } // Rimuovi punti scaduti
 
-    const isAlert = p.dist < 30;
-    const base = isAlert ? '248,81,73' : '240,140,39';
+    const isAlert = p.dist < 30; // <30cm = allerta
+    const base = isAlert ? '248,81,73' : '240,140,39'; // Rosso per allerta, arancione normale
 
+    // Cerchio esterno (glow)
     ctx.beginPath();
     ctx.arc(p.x, p.y, 10, 0, 2 * Math.PI);
     ctx.fillStyle = `rgba(${base},${p.alpha * 0.15})`;
     ctx.fill();
+    // Cerchio medio (corpo)
     ctx.beginPath();
     ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
     ctx.fillStyle = `rgba(${base},${p.alpha})`;
     ctx.fill();
+    // Punto centrale (highlight)
     ctx.beginPath();
     ctx.arc(p.x, p.y, 1.5, 0, 2 * Math.PI);
     ctx.fillStyle = `rgba(255,220,180,${p.alpha})`;
     ctx.fill();
   }
 
-  // ── Centro ──
+  // ── DISEGNA CENTRO RADAR (punto fisso) ──
   ctx.beginPath(); ctx.arc(CX, CY, 4, 0, 2 * Math.PI);
   ctx.fillStyle = '#f08c27'; ctx.fill();
   ctx.beginPath(); ctx.arc(CX, CY, 8, 0, 2 * Math.PI);
   ctx.fillStyle = 'rgba(240,140,39,0.25)'; ctx.fill();
 
+  // ── AGGIORNA ANGOLO SWEEP (animazione temporizzata) ──
   const frameTime = performance.now();
   const dt = frameTime - lastFrameTime;
   lastFrameTime = frameTime;
 
-  sweep += sweepDir * SWEEP_SPEED_DEG_PER_MS * dt;
-  if (sweep >= 180) { sweep = 180; sweepDir = -1; }
-  else if (sweep <= 0) { sweep = 0; sweepDir = 1; }
+  sweep += sweepDir * SWEEP_SPEED_DEG_PER_MS * dt; // Muovi sweep in base a dt
+  if (sweep >= 180) { sweep = 180; sweepDir = -1; } // Inversione a destra
+  else if (sweep <= 0) { sweep = 0; sweepDir = 1; } // Inversione a sinistra
 
-  requestAnimationFrame(draw);
+  requestAnimationFrame(draw); // Prossimo frame
 }
-draw();
+draw(); // Avvia loop animazione
 
-// ── Aggiungi punto ──────────────────────────────────────────
+// ── AGGIUNGI NUOVO PUNTO SUL RADAR ───────────────────────────────
 function addPoint(angleDeg, distCm) {
   const a = parseFloat(angleDeg);
   const d = parseFloat(distCm);
-  if (isNaN(a) || isNaN(d)) return;
+  if (isNaN(a) || isNaN(d)) return; // Scarta dati invalidi
+  
+  // Sincronizza sweep con primo dato ricevuto (evita partenza da 90° fissa)
   if (!sweepSynced) {
     sweep = Math.min(Math.max(a, 0), 180);
     sweepDir = (sweep >= 179) ? -1 : 1;
     lastFrameTime = performance.now();
     sweepSynced = true;
   }
-  const { x, y } = polarToXY(a, d);
-  pts.push({ x, y, alpha: 1, dist: d, ts: Date.now() });
+  
+  const { x, y } = polarToXY(a, d); // Converti coordinate polari → canvas
+  pts.push({ x, y, alpha: 1, dist: d, ts: Date.now() }); // Aggiungi punto con alpha=1
 }
 
-// ── Server config ───────────────────────────────────────────
+// ── GESTIONE CONFIGURAZIONE SERVER (localStorage + URL params) ──
 function getServer() {
   const p = new URLSearchParams(location.search);
   if (p.get('server')) localStorage.setItem('rs', p.get('server'));
@@ -375,47 +401,56 @@ function saveServer() {
 function showConfig() { document.getElementById('cfgBanner').style.display = 'flex'; }
 function hideConfig() { document.getElementById('cfgBanner').style.display = 'none'; }
 
-// ── WebSocket ───────────────────────────────────────────────
+// ── WEBSOCKET: connessione, ricezione dati, riconnessione auto ──
 function connectWS(srv) {
-  if (ws) ws.close();
+  if (ws) ws.close(); // Chiudi connessione esistente
   document.getElementById('sDot').classList.add('connecting');
   document.getElementById('sTxt').textContent = 'connessione...';
+  
+  // Converti URL http/https → ws/wss per WebSocket
   ws = new WebSocket(srv.replace(/^http/, 'ws'));
+  
   ws.onopen = () => {
     document.getElementById('sDot').classList.remove('connecting');
     document.getElementById('sDot').classList.add('on');
     document.getElementById('sTxt').textContent = 'online · ' + srv.replace(/^https?:\/\//, '');
   };
+  
   ws.onmessage = e => {
     try {
-      const d = JSON.parse(e.data);
-      addPoint(d.angolo, d.distanza);
-      updateLast(d);
-      addRow(d, true);
-      updateStats(parseFloat(d.distanza));
+      const d = JSON.parse(e.data); // Parsing messaggio JSON dal backend
+      addPoint(d.angolo, d.distanza); // Aggiungi punto sul radar
+      updateLast(d); // Aggiorna metriche ultimo rilevamento
+      addRow(d, true); // Aggiungi riga in tabella (in cima)
+      updateStats(parseFloat(d.distanza)); // Aggiorna min/max/alert
       n++; document.getElementById('counter').textContent = n + ' rilevamenti';
     } catch(err) { console.error(err); }
   };
+  
   ws.onclose = () => {
     document.getElementById('sDot').classList.remove('on', 'connecting');
     document.getElementById('sTxt').textContent = 'offline';
-    setTimeout(() => connectWS(srv), 4000);
+    setTimeout(() => connectWS(srv), 4000); // Riconnessione automatica dopo 4s
   };
-  ws.onerror = () => ws.close();
+  
+  ws.onerror = () => ws.close(); // Chiudi su errore per triggerare onclose
 }
 
-// ── UI ──────────────────────────────────────────────────────
+// ── AGGIORNAMENTO UI: ULTIMO RILEVAMENTO ────────────────────────
 function updateLast(d) {
   const ae = document.getElementById('dAng');
   const de = document.getElementById('dDist');
   ae.textContent = parseFloat(d.angolo).toFixed(1);
   de.textContent = d.distanza;
   document.getElementById('dTime').textContent = new Date(d.timestamp).toLocaleTimeString('it-IT');
+  
+  // Classe CSS per colorazione condizionale (alert/warning)
   de.classList.remove('alert', 'warning');
   if (d.distanza < 30) de.classList.add('alert');
   else if (d.distanza < 60) de.classList.add('warning');
 }
 
+// ── AGGIORNAMENTO STATISTICHE (min/max/medio/alert) ─────────────
 function updateStats(dist) {
   if (dist < minDist) { minDist = dist; document.getElementById('dMin').textContent = dist.toFixed(0); }
   if (dist > maxDist) { maxDist = dist; document.getElementById('dMax').textContent = dist.toFixed(0); }
@@ -424,40 +459,55 @@ function updateStats(dist) {
     document.getElementById('statAvg').textContent = 'Ø ' + ((minDist + maxDist) / 2).toFixed(0);
 }
 
+// ── AGGIUNGI RIGA IN TABELLA STORICO ────────────────────────────
 function addRow(d, pre) {
   const ph = document.querySelector('.placeholder-row');
-  if (ph) ph.remove();
+  if (ph) ph.remove(); // Rimuovi riga "Nessun dato" se presente
+  
   const tr = document.createElement('tr');
-  tr.classList.add('fade-in');
+  tr.classList.add('fade-in'); // Animazione ingresso
   tr.innerHTML = `<td class="time">${new Date(d.timestamp).toLocaleTimeString('it-IT')}</td>
     <td class="ang">${parseFloat(d.angolo).toFixed(1)}°</td>
     <td class="${d.distanza < 30 ? 'dist alert' : 'dist'}">${d.distanza} cm</td>`;
+  
   const tb = document.getElementById('tbody');
-  if (pre) tb.insertBefore(tr, tb.firstChild); else tb.appendChild(tr);
+  if (pre) tb.insertBefore(tr, tb.firstChild); else tb.appendChild(tr); // Inserisci in cima o in fondo
+  
+  // Mantieni max 100 righe in tabella (performance)
   while (tb.children.length > 100) tb.removeChild(tb.lastChild);
 }
 
+// ── CARICA STORICO DAL BACKEND (API REST) ───────────────────────
 async function loadHistory() {
   const srv = getServer(); if (!srv) return;
   try {
     const data = await (await fetch(srv + '/api/storico?limit=50')).json();
-    document.getElementById('tbody').innerHTML = '';
-    minDist = Infinity; maxDist = -Infinity; alertCount = 0;
+    document.getElementById('tbody').innerHTML = ''; // Pulisci tabella
+    minDist = Infinity; maxDist = -Infinity; alertCount = 0; // Reset stats
+    
+    // Popola tabella e aggiorna stats
     data.forEach(d => { addRow(d, false); updateStats(parseFloat(d.distanza)); });
+    
+    // Popola radar con ultimi 40 punti (evita sovraccarico visivo)
     data.slice(0, 40).forEach(d => addPoint(d.angolo, d.distanza));
+    
     n = data.length;
     document.getElementById('counter').textContent = n + ' rilevamenti';
   } catch(e) { console.error('loadHistory:', e); }
 }
 
+// ── CANCELLA STORICO (API DELETE + reset UI) ────────────────────
 async function clearHistory() {
   const srv = getServer();
   if (!srv) { alert('Server non configurato'); return; }
   if (!confirm('Cancellare tutto lo storico?')) return;
+  
   try {
     const r = await fetch(srv + '/api/storico', { method: 'DELETE' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
   } catch(e) { alert('Errore: ' + e.message); return; }
+  
+  // Reset UI completo
   document.getElementById('tbody').innerHTML = '<tr class="placeholder-row"><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px 0;">Nessun dato</td></tr>';
   pts.length = 0; n = 0; minDist = Infinity; maxDist = -Infinity; alertCount = 0;
   ['dAng','dDist','dTime','dMin','dMax'].forEach(id => document.getElementById(id).textContent = '—');
@@ -466,15 +516,17 @@ async function clearHistory() {
   document.getElementById('statAlert').textContent = '⚠ 0';
 }
 
+// ── PULISCI SOLO IL RADAR (mantiene storico tabella) ────────────
 function clearRadar() { pts.length = 0; }
 
-// ── Init ─────────────────────────────────────────────────────
+// ── INIZIALIZZAZIONE APP ────────────────────────────────────────
 function init() {
   const srv = getServer();
-  if (!srv) { document.getElementById('cfgBanner').style.display = 'flex'; return; }
-  connectWS(srv); loadHistory();
+  if (!srv) { document.getElementById('cfgBanner').style.display = 'flex'; return; } // Mostra config se nessun server
+  connectWS(srv); // Connetti WebSocket
+  loadHistory(); // Carica storico iniziale
 }
-init();
+init(); // Avvia app
 </script>
 </body>
 </html>
