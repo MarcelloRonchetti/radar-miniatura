@@ -156,24 +156,55 @@
 </div>
 
 <script>
-// ── Costanti ────────────────────────────────────────────────
+// ─── CONFIGURAZIONE VISUALE GLOBALE (MODIFICA SOLO QUI PER SCALARE TUTTO) ─────────────
+const VIS = {
+  MAX_CANVAS_PX: 980,        // Dimensione massima canvas (px)
+  PANEL_MARGIN: 8,           // Margine interno pannello radar (px)
+  RADIUS_MARGIN_X: 16,       // Margine orizzontale dal bordo al raggio
+  RADIUS_MARGIN_Y: 12,       // Margine verticale dal centro al raggio
+  CENTER_Y_OFFSET: 18,       // Quanto alzare il centro rispetto al fondo
+  
+  POINTS: {
+    GLOW: 20,                // Raggio alone esterno punti
+    BODY: 8.5,               // Raggio punto principale
+    CORE: 3.5,               // Raggio highlight centrale
+  },
+  CENTER_DOT: {
+    CORE: 8,                 // Raggio punto centrale radar
+    GLOW: 16,                // Raggio alone centro
+  },
+  FONTS: {
+    DIST_LABEL: 13,          // Etichette distanze (cm)
+    ANGLE_LABEL: 14,         // Etichette gradi (°)
+  },
+  LINES: {
+    RING: 1.5,               // Spessore cerchi distanza
+    ANGLE: 1.1,              // Spessore linee angolari
+    BASE: 1.8,               // Spessore linea base
+  },
+  OFFSETS: {
+    DIST_LABEL_PAD: 6,       // Padding etichetta cm dal cerchio
+    ANGLE_LABEL_PAD: 10,     // Padding etichetta gradi dal bordo
+    ANGLE_LABEL_Y: 24,       // Offset verticale etichette gradi sotto baseline
+    BASE_EXTEND: 28,         // Estensione linea base oltre il raggio
+  }
+};
+
+// ── Costanti funzionali ────────────────────────────────────────────────
 const MAX_DIST  = 200;
 const MAX_ANGLE = 180;
 const POINT_LIFE = 4000;
-
-// ⬇️ INGANDIMENTO: margini ridotti per canvas più grande
 let lastFrameTime = performance.now();
 
-// ── SETUP CANVAS ─────────────────────────────────────────────────
+// ── SETUP CANVAS ─────────────────────────────────────────────────────
 const canvas = document.getElementById('radarCanvas');
 const ctx    = canvas.getContext('2d');
 let W, H, CX, CY, R;
 
 function resizeCanvas() {
-  const panel  = document.querySelector('.radar-panel');
-  // ⬇️ Margini ridotti da 36px a 12px → canvas occupa più spazio
-  const avail  = Math.min(panel.clientWidth - 12, panel.clientHeight - 12, 900); // ⬆️ max da 820 a 900px
-  const ratio  = window.devicePixelRatio || 1;
+  const panel = document.querySelector('.radar-panel');
+  const avail = Math.min(panel.clientWidth - VIS.PANEL_MARGIN, panel.clientHeight - VIS.PANEL_MARGIN, VIS.MAX_CANVAS_PX);
+  const ratio = window.devicePixelRatio || 1;
   canvas.style.width  = avail + 'px';
   canvas.style.height = avail + 'px';
   canvas.width  = Math.round(avail * ratio);
@@ -182,77 +213,64 @@ function resizeCanvas() {
   W  = avail;
   H  = avail;
   CX = W / 2;
-  CY = H - 24; // ⬇️ ridotto da 30 a 24 per più spazio verticale
-  // ⬇️ Raggio aumentato: meno margine, più area utile
-  R  = Math.min(CX - 20, CY - 12); 
+  CY = H - VIS.CENTER_Y_OFFSET;
+  R  = Math.min(CX - VIS.RADIUS_MARGIN_X, CY - VIS.RADIUS_MARGIN_Y);
 }
 resizeCanvas();
 window.addEventListener('resize', () => { resizeCanvas(); });
 
-// ── CONVERSIONE POLARE → COORDINATE CANVAS ───────────────────────
+// ── CONVERSIONE POLARE → COORDINATE CANVAS ───────────────────────────
 function polarToXY(angleDeg, distCm) {
   const rad = Math.PI - (angleDeg / MAX_ANGLE) * Math.PI;
   const r   = (Math.min(distCm, MAX_DIST) / MAX_DIST) * R;
-  return {
-    x: CX + r * Math.cos(rad),
-    y: CY - r * Math.sin(rad)
-  };
+  return { x: CX + r * Math.cos(rad), y: CY - r * Math.sin(rad) };
 }
 
-// ── STATO GLOBALE ───────────────────────────────────────────────
+// ── STATO GLOBALE ────────────────────────────────────────────────────
 const pts = [];
 let sweepSynced = false;
 let n = 0, minDist = Infinity, maxDist = -Infinity, alertCount = 0;
 let ws = null;
 
-// ── FUNZIONE DI DISEGNO PRINCIPALE ──────────────────────────────
+// ── LOOP DISEGNO ─────────────────────────────────────────────────────
 function draw() {
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = '#080808';
   ctx.fillRect(0, 0, W, H);
 
-  // ── CERCHI DI DISTANZA ──
-  const ringDists = [50, 100, 150, 200];
-  ringDists.forEach(d => {
+  // ── CERCHI DISTANZA ──
+  [50, 100, 150, 200].forEach(d => {
     const rr = (d / MAX_DIST) * R;
-    ctx.beginPath();
-    ctx.arc(CX, CY, rr, Math.PI, 2 * Math.PI);
-    ctx.strokeStyle = '#2c2c2c';
-    ctx.lineWidth = 1.2; // ⬆️ leggermente più spesso
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, rr, Math.PI, 2 * Math.PI);
+    ctx.strokeStyle = '#2c2c2c'; ctx.lineWidth = VIS.LINES.RING; ctx.stroke();
     const lrad = Math.PI - (15 / 180) * Math.PI;
     ctx.fillStyle = '#4a4040';
-    ctx.font = '11px JetBrains Mono'; // ⬆️ font etichette più grande
+    ctx.font = `${VIS.FONTS.DIST_LABEL}px JetBrains Mono`;
     ctx.textAlign = 'left';
-    ctx.fillText(d + 'cm', CX + rr * Math.cos(lrad) + 4, CY - rr * Math.sin(lrad));
+    ctx.fillText(d + 'cm', CX + rr * Math.cos(lrad) + VIS.OFFSETS.DIST_LABEL_PAD, CY - rr * Math.sin(lrad));
   });
 
   // ── LINEE ANGOLARI + ETICHETTE ──
-  const angles = [0, 30, 60, 90, 120, 150, 180];
-  angles.forEach(a => {
+  [0, 30, 60, 90, 120, 150, 180].forEach(a => {
     const rad = Math.PI - (a / 180) * Math.PI;
-    ctx.beginPath();
-    ctx.moveTo(CX, CY);
+    ctx.beginPath(); ctx.moveTo(CX, CY);
     ctx.lineTo(CX + R * Math.cos(rad), CY - R * Math.sin(rad));
-    ctx.strokeStyle = '#2c2c2c';
-    ctx.lineWidth = 0.9; // ⬆️ più visibile
-    ctx.stroke();
-    const lx = CX + (R + 8) * Math.cos(rad); // ⬆️ etichette più esterne
+    ctx.strokeStyle = '#2c2c2c'; ctx.lineWidth = VIS.LINES.ANGLE; ctx.stroke();
+    
+    const lx = CX + (R + VIS.OFFSETS.ANGLE_LABEL_PAD) * Math.cos(rad);
     ctx.fillStyle = '#6a5a4a';
-    ctx.font = '12px JetBrains Mono'; // ⬆️ font gradi più grande
+    ctx.font = `${VIS.FONTS.ANGLE_LABEL}px JetBrains Mono`;
     ctx.textAlign = 'center';
-    ctx.fillText(a + '°', lx, CY + 20);
+    ctx.fillText(a + '°', lx, CY + VIS.OFFSETS.ANGLE_LABEL_Y);
   });
 
   // ── LINEA BASE ──
   ctx.beginPath();
-  ctx.moveTo(CX - R - 24, CY); // ⬆️ linea più lunga
-  ctx.lineTo(CX + R + 24, CY);
-  ctx.strokeStyle = '#3a2a1a';
-  ctx.lineWidth = 1.4; // ⬆️ più spessa
-  ctx.stroke();
+  ctx.moveTo(CX - R - VIS.OFFSETS.BASE_EXTEND, CY);
+  ctx.lineTo(CX + R + VIS.OFFSETS.BASE_EXTEND, CY);
+  ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = VIS.LINES.BASE; ctx.stroke();
 
-  // ── PUNTI RILEVATI (INGRANDITI) ──
+  // ── PUNTI RILEVATI (INGRANDITI TRAMITE VIS) ──
   const now = Date.now();
   for (let i = pts.length - 1; i >= 0; i--) {
     const p = pts[i];
@@ -260,45 +278,34 @@ function draw() {
     p.alpha = Math.max(0, 1 - age / POINT_LIFE);
     if (p.alpha <= 0) { pts.splice(i, 1); continue; }
 
-    const isAlert = p.dist < 30;
-    const base = isAlert ? '248,81,73' : '240,140,39';
-
-    // ⬇️ PUNTI INGRANDITI: raggi aumentati del ~60%
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 16, 0, 2 * Math.PI); // ⬆️ glow: 10 → 16px
-    ctx.fillStyle = `rgba(${base},${p.alpha * 0.15})`;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 6.5, 0, 2 * Math.PI); // ⬆️ corpo: 4 → 6.5px
-    ctx.fillStyle = `rgba(${base},${p.alpha})`;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 2.5, 0, 2 * Math.PI); // ⬆️ highlight: 1.5 → 2.5px
-    ctx.fillStyle = `rgba(255,220,180,${p.alpha})`;
-    ctx.fill();
+    const base = p.dist < 30 ? '248,81,73' : '240,140,39';
+    ctx.beginPath(); ctx.arc(p.x, p.y, VIS.POINTS.GLOW, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(${base},${p.alpha * 0.15})`; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, VIS.POINTS.BODY, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(${base},${p.alpha})`; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, VIS.POINTS.CORE, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(255,220,180,${p.alpha})`; ctx.fill();
   }
 
-  // ── CENTRO RADAR (ingrandito) ──
-  ctx.beginPath(); ctx.arc(CX, CY, 6, 0, 2 * Math.PI); // ⬆️ 4 → 6px
+  // ── CENTRO RADAR ──
+  ctx.beginPath(); ctx.arc(CX, CY, VIS.CENTER_DOT.CORE, 0, 2 * Math.PI);
   ctx.fillStyle = '#f08c27'; ctx.fill();
-  ctx.beginPath(); ctx.arc(CX, CY, 12, 0, 2 * Math.PI); // ⬆️ 8 → 12px
+  ctx.beginPath(); ctx.arc(CX, CY, VIS.CENTER_DOT.GLOW, 0, 2 * Math.PI);
   ctx.fillStyle = 'rgba(240,140,39,0.25)'; ctx.fill();
 
   requestAnimationFrame(draw);
 }
 draw();
 
-// ── AGGIUNGI PUNTO ───────────────────────────────────────────────
+// ── LOGICA DATI & UI ─────────────────────────────────────────────────
 function addPoint(angleDeg, distCm) {
-  const a = parseFloat(angleDeg);
-  const d = parseFloat(distCm);
+  const a = parseFloat(angleDeg), d = parseFloat(distCm);
   if (isNaN(a) || isNaN(d)) return;
   if (!sweepSynced) sweepSynced = true;
   const { x, y } = polarToXY(a, d);
   pts.push({ x, y, alpha: 1, dist: d, ts: Date.now() });
 }
 
-// ── CONFIG SERVER ────────────────────────────────────────────────
 function getServer() {
   const p = new URLSearchParams(location.search);
   if (p.get('server')) localStorage.setItem('rs', p.get('server'));
@@ -306,14 +313,11 @@ function getServer() {
 }
 function saveServer() {
   const v = document.getElementById('srvInput').value.trim().replace(/\/$/, '');
-  if (!v) return;
-  localStorage.setItem('rs', v);
-  hideConfig(); init();
+  if (!v) return; localStorage.setItem('rs', v); hideConfig(); init();
 }
 function showConfig() { document.getElementById('cfgBanner').style.display = 'flex'; }
 function hideConfig() { document.getElementById('cfgBanner').style.display = 'none'; }
 
-// ── WEBSOCKET ────────────────────────────────────────────────────
 function connectWS(srv) {
   if (ws) ws.close();
   document.getElementById('sDot').classList.add('connecting');
@@ -327,10 +331,7 @@ function connectWS(srv) {
   ws.onmessage = e => {
     try {
       const d = JSON.parse(e.data);
-      addPoint(d.angolo, d.distanza);
-      updateLast(d);
-      addRow(d, true);
-      updateStats(parseFloat(d.distanza));
+      addPoint(d.angolo, d.distanza); updateLast(d); addRow(d, true); updateStats(parseFloat(d.distanza));
       n++; document.getElementById('counter').textContent = n + ' rilevamenti';
     } catch(err) { console.error(err); }
   };
@@ -342,7 +343,6 @@ function connectWS(srv) {
   ws.onerror = () => ws.close();
 }
 
-// ── UI UPDATES ───────────────────────────────────────────────────
 function updateLast(d) {
   document.getElementById('dAng').textContent = parseFloat(d.angolo).toFixed(1);
   document.getElementById('dDist').textContent = d.distanza;
@@ -405,12 +405,10 @@ async function clearHistory() {
 
 function clearRadar() { pts.length = 0; }
 
-// ── INIT ─────────────────────────────────────────────────────────
 function init() {
   const srv = getServer();
   if (!srv) { document.getElementById('cfgBanner').style.display = 'flex'; return; }
-  connectWS(srv);
-  loadHistory();
+  connectWS(srv); loadHistory();
 }
 init();
 </script>
