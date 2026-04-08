@@ -337,7 +337,7 @@ function draw() {
   ctx.beginPath(); ctx.arc(CX, CY, 8, 0, 2 * Math.PI);
   ctx.fillStyle = 'rgba(240,140,39,0.25)'; ctx.fill();
 
-    // ── AGGIORNA SWEEP CON ACCELERAZIONE/DECELERAZIONE ──
+  /*  // ── AGGIORNA SWEEP CON ACCELERAZIONE/DECELERAZIONE ──
   const frameTime = performance.now();
   const dt = frameTime - lastFrameTime;
   lastFrameTime = frameTime;
@@ -374,9 +374,10 @@ function draw() {
     sweepSpeed = 0;
     setTimeout(() => { if (sweep === 0 && sweepDir === 1) sweepSpeed = 0.01; }, 1000);
   }
-
+  */
   requestAnimationFrame(draw); // Prossimo frame
 }
+  
 draw(); // Avvia loop animazione
 
 // ── AGGIUNGI NUOVO PUNTO SUL RADAR ───────────────────────────────
