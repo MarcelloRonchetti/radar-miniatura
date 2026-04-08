@@ -202,7 +202,7 @@ let W, H, CX, CY, R; // Dimensioni canvas: larghezza, altezza, centro X, centro 
 // Ridimensiona canvas in base al container, gestisce DPI alti (retina)
 function resizeCanvas() {
   const panel  = document.querySelector('.radar-panel');
-  const avail  = Math.min(panel.clientWidth - 48, panel.clientHeight - 48, 820);
+  const avail  = Math.min(panel.clientWidth - 36, panel.clientHeight - 36, 820);
   const ratio  = window.devicePixelRatio || 1;
   canvas.style.width  = avail + 'px';
   canvas.style.height = avail + 'px';
@@ -291,41 +291,15 @@ function draw() {
   ctx.lineWidth = 1.2;
   ctx.stroke();
 
-  // ── DISEGNA LINEA DI SCANSIONE (SWEEP) CON EFFETTO VENTAGLIO ──
-  const sr  = Math.PI - (sweep / 180) * Math.PI;      // Angolo sweep in radianti
-  const fan = 8 * (Math.PI / 180);                    // Ampiezza ventaglio (8°)
-  const trailAngle = 18 * (Math.PI / 180);            // Angolo scia posteriore (18°)
+  // ── DISEGNA LINEA DI SCANSIONE (SWEEP PULITA) ──
+  const sr = Math.PI - (sweep / 180) * Math.PI; // Angolo sweep in radianti
 
-  // Ventaglio semitrasparente davanti alla linea
-  ctx.beginPath();
-  ctx.moveTo(CX, CY);
-  if (sweepDir === 1) {
-    ctx.arc(CX, CY, R, sr, sr - fan, true); // Sweep verso destra: arco antiorario
-  } else {
-    ctx.arc(CX, CY, R, sr, sr + fan, false); // Sweep verso sinistra: arco orario
-  }
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(240,140,39,0.08)';
-  ctx.fill();
-
-  // Scia posteriore più lunga per effetto motion blur
-  ctx.beginPath();
-  if (sweepDir === 1) {
-    ctx.arc(CX, CY, R, sr + trailAngle, sr, true);
-  } else {
-    ctx.arc(CX, CY, R, sr, sr - trailAngle, false);
-  }
-  ctx.strokeStyle = 'rgba(240,140,39,0.2)';
-  ctx.lineWidth = 3;
-  ctx.lineCap = 'round';
-  ctx.stroke();
-
-  // Linea principale dello sweep (luminosa)
+  // Linea principale dello sweep (senza ventaglio né scia)
   ctx.beginPath();
   ctx.moveTo(CX, CY);
   ctx.lineTo(CX + R * Math.cos(sr), CY - R * Math.sin(sr));
-  ctx.strokeStyle = 'rgba(240,140,39,0.9)';
-  ctx.lineWidth = 1.8;
+  ctx.strokeStyle = 'rgba(240,140,39,0.6)';
+  ctx.lineWidth = 1.5;
   ctx.lineCap = 'round';
   ctx.stroke();
 
@@ -375,7 +349,7 @@ function draw() {
   if (isApproachingEdge) {
     // Decelera dolcemente verso il bordo
     sweepSpeed -= SWEEP_ACCEL * dt * 2; // decel più forte
-    if (sweepSpeed < 0.01) sweepSpeed = 0.01; // minimo movimento
+    if (sweepSpeed < 0.02) sweepSpeed = 0.02; // minimo movimento
   } else {
     // Accelera verso velocità massima
     if (sweepSpeed < SWEEP_MAX_SPEED) {
@@ -400,12 +374,6 @@ function draw() {
     sweepSpeed = 0;
     setTimeout(() => { if (sweep === 0 && sweepDir === 1) sweepSpeed = 0.01; }, 1000);
   }
-
-  // Debug: mostra velocità corrente (rimuovi in produzione)
-  // ctx.fillStyle = '#6a5a4a';
-  // ctx.font = '10px JetBrains Mono';
-  // ctx.textAlign = 'left';
-  // ctx.fillText(`Speed: ${sweepSpeed.toFixed(3)}°/ms`, 10, 20);
 
   requestAnimationFrame(draw); // Prossimo frame
 }
@@ -496,7 +464,7 @@ function updateLast(d) {
 // ── AGGIORNAMENTO STATISTICHE (min/max/medio/alert) ─────────────
 function updateStats(dist) {
   if (dist < minDist) { minDist = dist; document.getElementById('dMin').textContent = dist.toFixed(0); }
-  if (dist > maxDist) { maxDist = dist; document.getElementById('dMax').textContent = dist.toFixed(0); }8;  
+  if (dist > maxDist) { maxDist = dist; document.getElementById('dMax').textContent = dist.toFixed(0); }  
   if (dist < 30) { alertCount++; document.getElementById('statAlert').textContent = '⚠ ' + alertCount; }
   if (minDist !== Infinity && maxDist !== -Infinity)
     document.getElementById('statAvg').textContent = 'Ø ' + ((minDist + maxDist) / 2).toFixed(0);
@@ -573,3 +541,4 @@ init(); // Avvia app
 </script>
 </body>
 </html>
+
