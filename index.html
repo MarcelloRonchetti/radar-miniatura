@@ -159,8 +159,9 @@
 // ── Costanti ────────────────────────────────────────────────
 const MAX_DIST  = 200;
 const MAX_ANGLE = 180;
-const POINT_LIFE = 4000; // ms prima che un punto scompaia (fade-out)
+const POINT_LIFE = 4000;
 
+// ⬇️ INGANDIMENTO: margini ridotti per canvas più grande
 let lastFrameTime = performance.now();
 
 // ── SETUP CANVAS ─────────────────────────────────────────────────
@@ -170,7 +171,8 @@ let W, H, CX, CY, R;
 
 function resizeCanvas() {
   const panel  = document.querySelector('.radar-panel');
-  const avail  = Math.min(panel.clientWidth - 36, panel.clientHeight - 36, 820);
+  // ⬇️ Margini ridotti da 36px a 12px → canvas occupa più spazio
+  const avail  = Math.min(panel.clientWidth - 12, panel.clientHeight - 12, 900); // ⬆️ max da 820 a 900px
   const ratio  = window.devicePixelRatio || 1;
   canvas.style.width  = avail + 'px';
   canvas.style.height = avail + 'px';
@@ -180,8 +182,9 @@ function resizeCanvas() {
   W  = avail;
   H  = avail;
   CX = W / 2;
-  CY = H - 30;
-  R  = Math.min(CX - 30, CY - 16);
+  CY = H - 24; // ⬇️ ridotto da 30 a 24 per più spazio verticale
+  // ⬇️ Raggio aumentato: meno margine, più area utile
+  R  = Math.min(CX - 20, CY - 12); 
 }
 resizeCanvas();
 window.addEventListener('resize', () => { resizeCanvas(); });
@@ -197,8 +200,8 @@ function polarToXY(angleDeg, distCm) {
 }
 
 // ── STATO GLOBALE ───────────────────────────────────────────────
-const pts = [];              // Array punti visualizzati {x,y,alpha,dist,ts}
-let sweepSynced = false;     // sincronizzazione con primo dato
+const pts = [];
+let sweepSynced = false;
 let n = 0, minDist = Infinity, maxDist = -Infinity, alertCount = 0;
 let ws = null;
 
@@ -215,13 +218,13 @@ function draw() {
     ctx.beginPath();
     ctx.arc(CX, CY, rr, Math.PI, 2 * Math.PI);
     ctx.strokeStyle = '#2c2c2c';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.2; // ⬆️ leggermente più spesso
     ctx.stroke();
     const lrad = Math.PI - (15 / 180) * Math.PI;
     ctx.fillStyle = '#4a4040';
-    ctx.font = '10px JetBrains Mono';
+    ctx.font = '11px JetBrains Mono'; // ⬆️ font etichette più grande
     ctx.textAlign = 'left';
-    ctx.fillText(d + 'cm', CX + rr * Math.cos(lrad) + 3, CY - rr * Math.sin(lrad));
+    ctx.fillText(d + 'cm', CX + rr * Math.cos(lrad) + 4, CY - rr * Math.sin(lrad));
   });
 
   // ── LINEE ANGOLARI + ETICHETTE ──
@@ -232,26 +235,24 @@ function draw() {
     ctx.moveTo(CX, CY);
     ctx.lineTo(CX + R * Math.cos(rad), CY - R * Math.sin(rad));
     ctx.strokeStyle = '#2c2c2c';
-    ctx.lineWidth = 0.7;
+    ctx.lineWidth = 0.9; // ⬆️ più visibile
     ctx.stroke();
-    const lx = CX + (R + 6) * Math.cos(rad);
+    const lx = CX + (R + 8) * Math.cos(rad); // ⬆️ etichette più esterne
     ctx.fillStyle = '#6a5a4a';
-    ctx.font = '11px JetBrains Mono';
+    ctx.font = '12px JetBrains Mono'; // ⬆️ font gradi più grande
     ctx.textAlign = 'center';
-    ctx.fillText(a + '°', lx, CY + 18);
+    ctx.fillText(a + '°', lx, CY + 20);
   });
 
   // ── LINEA BASE ──
   ctx.beginPath();
-  ctx.moveTo(CX - R - 20, CY);
-  ctx.lineTo(CX + R + 20, CY);
+  ctx.moveTo(CX - R - 24, CY); // ⬆️ linea più lunga
+  ctx.lineTo(CX + R + 24, CY);
   ctx.strokeStyle = '#3a2a1a';
-  ctx.lineWidth = 1.2;
+  ctx.lineWidth = 1.4; // ⬆️ più spessa
   ctx.stroke();
 
-  // ⚠️ SWEEP LINE RIMOSSA: nessun codice di disegno o animazione qui
-
-  // ── PUNTI RILEVATI (con fade-out) ──
+  // ── PUNTI RILEVATI (INGRANDITI) ──
   const now = Date.now();
   for (let i = pts.length - 1; i >= 0; i--) {
     const p = pts[i];
@@ -262,24 +263,25 @@ function draw() {
     const isAlert = p.dist < 30;
     const base = isAlert ? '248,81,73' : '240,140,39';
 
+    // ⬇️ PUNTI INGRANDITI: raggi aumentati del ~60%
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 10, 0, 2 * Math.PI);
+    ctx.arc(p.x, p.y, 16, 0, 2 * Math.PI); // ⬆️ glow: 10 → 16px
     ctx.fillStyle = `rgba(${base},${p.alpha * 0.15})`;
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+    ctx.arc(p.x, p.y, 6.5, 0, 2 * Math.PI); // ⬆️ corpo: 4 → 6.5px
     ctx.fillStyle = `rgba(${base},${p.alpha})`;
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 1.5, 0, 2 * Math.PI);
+    ctx.arc(p.x, p.y, 2.5, 0, 2 * Math.PI); // ⬆️ highlight: 1.5 → 2.5px
     ctx.fillStyle = `rgba(255,220,180,${p.alpha})`;
     ctx.fill();
   }
 
-  // ── CENTRO RADAR ──
-  ctx.beginPath(); ctx.arc(CX, CY, 4, 0, 2 * Math.PI);
+  // ── CENTRO RADAR (ingrandito) ──
+  ctx.beginPath(); ctx.arc(CX, CY, 6, 0, 2 * Math.PI); // ⬆️ 4 → 6px
   ctx.fillStyle = '#f08c27'; ctx.fill();
-  ctx.beginPath(); ctx.arc(CX, CY, 8, 0, 2 * Math.PI);
+  ctx.beginPath(); ctx.arc(CX, CY, 12, 0, 2 * Math.PI); // ⬆️ 8 → 12px
   ctx.fillStyle = 'rgba(240,140,39,0.25)'; ctx.fill();
 
   requestAnimationFrame(draw);
@@ -291,11 +293,7 @@ function addPoint(angleDeg, distCm) {
   const a = parseFloat(angleDeg);
   const d = parseFloat(distCm);
   if (isNaN(a) || isNaN(d)) return;
-  
-  if (!sweepSynced) {
-    sweepSynced = true; // solo flag, nessuna sincronizzazione sweep
-  }
-  
+  if (!sweepSynced) sweepSynced = true;
   const { x, y } = polarToXY(a, d);
   pts.push({ x, y, alpha: 1, dist: d, ts: Date.now() });
 }
@@ -320,15 +318,12 @@ function connectWS(srv) {
   if (ws) ws.close();
   document.getElementById('sDot').classList.add('connecting');
   document.getElementById('sTxt').textContent = 'connessione...';
-  
   ws = new WebSocket(srv.replace(/^http/, 'ws'));
-  
   ws.onopen = () => {
     document.getElementById('sDot').classList.remove('connecting');
     document.getElementById('sDot').classList.add('on');
     document.getElementById('sTxt').textContent = 'online · ' + srv.replace(/^https?:\/\//, '');
   };
-  
   ws.onmessage = e => {
     try {
       const d = JSON.parse(e.data);
@@ -339,13 +334,11 @@ function connectWS(srv) {
       n++; document.getElementById('counter').textContent = n + ' rilevamenti';
     } catch(err) { console.error(err); }
   };
-  
   ws.onclose = () => {
     document.getElementById('sDot').classList.remove('on', 'connecting');
     document.getElementById('sTxt').textContent = 'offline';
     setTimeout(() => connectWS(srv), 4000);
   };
-  
   ws.onerror = () => ws.close();
 }
 
@@ -354,7 +347,6 @@ function updateLast(d) {
   document.getElementById('dAng').textContent = parseFloat(d.angolo).toFixed(1);
   document.getElementById('dDist').textContent = d.distanza;
   document.getElementById('dTime').textContent = new Date(d.timestamp).toLocaleTimeString('it-IT');
-  
   const de = document.getElementById('dDist');
   de.classList.remove('alert', 'warning');
   if (d.distanza < 30) de.classList.add('alert');
@@ -372,13 +364,11 @@ function updateStats(dist) {
 function addRow(d, pre) {
   const ph = document.querySelector('.placeholder-row');
   if (ph) ph.remove();
-  
   const tr = document.createElement('tr');
   tr.classList.add('fade-in');
   tr.innerHTML = `<td class="time">${new Date(d.timestamp).toLocaleTimeString('it-IT')}</td>
     <td class="ang">${parseFloat(d.angolo).toFixed(1)}°</td>
     <td class="${d.distanza < 30 ? 'dist alert' : 'dist'}">${d.distanza} cm</td>`;
-  
   const tb = document.getElementById('tbody');
   if (pre) tb.insertBefore(tr, tb.firstChild); else tb.appendChild(tr);
   while (tb.children.length > 100) tb.removeChild(tb.lastChild);
@@ -401,12 +391,10 @@ async function clearHistory() {
   const srv = getServer();
   if (!srv) { alert('Server non configurato'); return; }
   if (!confirm('Cancellare tutto lo storico?')) return;
-  
   try {
     const r = await fetch(srv + '/api/storico', { method: 'DELETE' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
   } catch(e) { alert('Errore: ' + e.message); return; }
-  
   document.getElementById('tbody').innerHTML = '<tr class="placeholder-row"><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px 0;">Nessun dato</td></tr>';
   pts.length = 0; n = 0; minDist = Infinity; maxDist = -Infinity; alertCount = 0;
   ['dAng','dDist','dTime','dMin','dMax'].forEach(id => document.getElementById(id).textContent = '—');
