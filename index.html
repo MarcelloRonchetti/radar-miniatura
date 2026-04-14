@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radar Miniatura</title>
-<link href="https://cdn.jsdelivr.net/npm/fontsource-jetbrains-mono@5.1.0/400.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/fontsource-jetbrains-mono@5.1.0/300.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/fontsource-jetbrains-mono@5.1.0/500.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.1.0/index.css" rel="stylesheet">
 <style>
   :root {
     --bg:        #080808;
@@ -200,8 +198,8 @@ let lastFrameTime = performance.now();
 
 let lastPacket = null;
 
-const ANGLE_THRESHOLD = 3;
-const DIST_THRESHOLD = 5;
+const ANGLE_THRESHOLD = 5;
+const DIST_THRESHOLD = 8;
 
 
 //Smooting semplice per evitare di disegnare punti troppo vicini tra loro (opzionale, dipende da rumore sensore)+
@@ -331,8 +329,8 @@ function shouldDisplay(packet) {
   const angleDiff = Math.abs(packet.angolo - lastPacket.angolo);
   const distDiff  = Math.abs(packet.distanza - lastPacket.distanza);
 
-  // filtra solo se ENTRAMBI piccoli
-  return !(angleDiff <= ANGLE_THRESHOLD && distDiff <= DIST_THRESHOLD);
+  // 🔥 FILTRA se uno dei due è troppo piccolo
+  return !(angleDiff <= ANGLE_THRESHOLD || distDiff <= DIST_THRESHOLD);
 }
 
 
