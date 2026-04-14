@@ -198,8 +198,8 @@ let lastFrameTime = performance.now();
 
 let lastPacket = null;
 
-const ANGLE_THRESHOLD = 5;
-const DIST_THRESHOLD = 8;
+const ANGLE_THRESHOLD = 2; // ° — soglia minima differenza angolo per disegnare nuovo punto
+const DIST_THRESHOLD = 5;  // cm — soglia minima differenza distanza per disegnare nuovo punto
 
 
 //Smooting semplice per evitare di disegnare punti troppo vicini tra loro (opzionale, dipende da rumore sensore)+
