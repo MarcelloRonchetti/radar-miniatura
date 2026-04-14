@@ -198,6 +198,12 @@ const MAX_ANGLE = 180;
 const POINT_LIFE = 4000;
 let lastFrameTime = performance.now();
 
+let lastPacket = null;
+
+const ANGLE_THRESHOLD = 3;
+const DIST_THRESHOLD = 5;
+
+
 // ── SETUP CANVAS ─────────────────────────────────────────────────────
 const canvas = document.getElementById('radarCanvas');
 const ctx    = canvas.getContext('2d');
@@ -299,6 +305,23 @@ function draw() {
 }
 draw();
 
+// ── Filtering semplice per evitare di disegnare punti troppo vicini tra loro (opzionale, dipende da rumore sensore)
+function shouldDisplay(packet) {
+  if (!lastPacket) return true;
+
+  const angleDiff = Math.abs(packet.angolo - lastPacket.angolo);
+  const distDiff = Math.abs(packet.distanza - lastPacket.distanza);
+
+  if (angleDiff <= ANGLE_THRESHOLD && distDiff <= DIST_THRESHOLD) {
+    return false; // too similar → skip
+  }
+
+  return true;
+}
+
+
+
+
 // ── LOGICA DATI & UI ─────────────────────────────────────────────────
 function addPoint(angleDeg, distCm) {
   const a = parseFloat(angleDeg), d = parseFloat(distCm);
@@ -365,16 +388,27 @@ function connectWS(srv) {
     document.getElementById('sDot').classList.add('on');
     document.getElementById('sTxt').textContent = 'online · ' + srv.replace(/^https?:\/\//, '');
   };
-  ws.onmessage = e => {
-    try {
-      const d = JSON.parse(e.data);
-      addPoint(d.angolo, d.distanza);
-      updateLast(d);
-      addRow(d, true);
-      updateStats(parseFloat(d.distanza));
-      n++;
-      document.getElementById('counter').textContent = n + ' rilevamenti';
-    } catch(err) { console.error(err); }
+  ws.onmessage = e => { 
+  try {
+    const d = JSON.parse(e.data);
+
+    // ✅ FILTER HERE
+    if (!shouldDisplay(d)) return;
+
+    // ✅ Only runs if packet is "different enough"
+    addPoint(d.angolo, d.distanza);
+    updateLast(d);
+    addRow(d, true);
+    updateStats(parseFloat(d.distanza));
+
+    lastPacket = d; // IMPORTANT
+
+    n++;
+    document.getElementById('counter').textContent = n + ' rilevamenti';
+
+  } catch(err) { 
+    console.error(err); 
+  }
   };
   ws.onclose = () => {
     document.getElementById('sDot').classList.remove('on', 'connecting');
@@ -421,8 +455,17 @@ async function loadHistory() {
     const data = await (await fetch(srv + '/api/storico?limit=50')).json();
     document.getElementById('tbody').innerHTML = '';
     minDist = Infinity; maxDist = -Infinity; alertCount = 0;
-    data.forEach(d => { addRow(d, false); updateStats(parseFloat(d.distanza)); });
+
+    data.forEach(d => {
+  if (shouldDisplay(d)) {
+    addRow(d, false);
+    updateStats(parseFloat(d.distanza));
+    lastPacket = d;
+  }
+});
+
     data.slice(0, 40).forEach(d => addPoint(d.angolo, d.distanza));
+
     n = data.length;
     document.getElementById('counter').textContent = n + ' rilevamenti';
   } catch(e) { console.error('loadHistory:', e); }
