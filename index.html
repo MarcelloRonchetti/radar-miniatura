@@ -207,7 +207,7 @@ const DIST_THRESHOLD = 5;
 //Smooting semplice per evitare di disegnare punti troppo vicini tra loro (opzionale, dipende da rumore sensore)+
 // --- SMOOTHING ---
 let smoothedPacket = null;
-const ALPHA = 0.3;
+const ALPHA = 0.15;
 
 function smooth(packet) {
   if (!smoothedPacket) {
@@ -423,8 +423,16 @@ function connectWS(srv) {
 
     //  usa i dati
     addPoint(current.angolo, current.distanza);
-    updateLast(d);
-    addRow(d, true);
+    updateLast({
+    ...d,
+    angolo: current.angolo,
+    distanza: current.distanza
+    });
+    addRow({
+    ...d,
+    angolo: current.angolo,
+    distanza: current.distanza
+    }, true);
     updateStats(current.distanza);
 
     lastPacket = current; // 🔥 sempre aggiornato
@@ -486,10 +494,15 @@ async function loadHistory() {
     minDist = Infinity; maxDist = -Infinity; alertCount = 0;
 
     data.forEach(d => {
-  if (shouldDisplay(d)) {
-    addRow(d, false);
-    updateStats(parseFloat(d.distanza));
-    lastPacket = d;
+  const current = {
+    angolo: Number(d.angolo),
+    distanza: Number(d.distanza)
+  };
+
+  if (shouldDisplay(current)) {
+    addRow(current, false);
+    updateStats(current.distanza);
+    lastPacket = current;
   }
 });
 
