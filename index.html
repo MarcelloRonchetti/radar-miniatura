@@ -309,15 +309,18 @@ draw();
 function shouldDisplay(packet) {
   if (!lastPacket) return true;
 
-  const angleDiff = Math.abs(packet.angolo - lastPacket.angolo);
-  const distDiff = Math.abs(packet.distanza - lastPacket.distanza);
+  const angle = Number(packet.angolo);
+  const dist = Number(packet.distanza);
 
-  if (angleDiff <= ANGLE_THRESHOLD && distDiff <= DIST_THRESHOLD) {
-    return false; // too similar → skip
-  }
+  const lastAngle = lastPacket.angolo;
+  const lastDist = lastPacket.distanza;
 
-  return true;
+  const angleDiff = Math.abs(angle - lastAngle);
+  const distDiff = Math.abs(dist - lastDist);
+
+  return !(angleDiff <= ANGLE_THRESHOLD && distDiff <= DIST_THRESHOLD);
 }
+
 
 
 
@@ -401,7 +404,10 @@ function connectWS(srv) {
     addRow(d, true);
     updateStats(parseFloat(d.distanza));
 
-    lastPacket = d; // IMPORTANT
+    lastPacket = {
+    angolo: Number(d.angolo),
+    distanza: Number(d.distanza)
+    }; // IMPORTANT
 
     n++;
     document.getElementById('counter').textContent = n + ' rilevamenti';
