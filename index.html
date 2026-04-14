@@ -322,7 +322,7 @@ function connectWS(srv) {
   if (ws) ws.close();
   document.getElementById('sDot').classList.add('connecting');
   document.getElementById('sTxt').textContent = 'connessione...';
-    ws = new WebSocket(srv.replace(/^http/, 'ws') + '/ws'); 
+    ws = new WebSocket(srv.replace(/^http/, 'ws')); 
     ws.onopen = () => {
     document.getElementById('sDot').classList.remove('connecting');
     document.getElementById('sDot').classList.add('on');
