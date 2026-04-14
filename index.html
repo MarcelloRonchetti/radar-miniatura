@@ -205,7 +205,7 @@ const DIST_THRESHOLD = 5;  // cm — soglia minima differenza distanza per diseg
 //Smooting semplice per evitare di disegnare punti troppo vicini tra loro (opzionale, dipende da rumore sensore)+
 // --- SMOOTHING ---
 let smoothedPacket = null;
-const ALPHA = 0.15;
+const ALPHA = 0.3;
 
 function smooth(packet) {
   if (!smoothedPacket) {
@@ -326,11 +326,9 @@ draw();
 function shouldDisplay(packet) {
   if (!lastPacket) return true;
 
-  const angleDiff = Math.abs(packet.angolo - lastPacket.angolo);
-  const distDiff  = Math.abs(packet.distanza - lastPacket.distanza);
+  const distDiff = Math.abs(packet.distanza - lastPacket.distanza);
 
-  // 🔥 FILTRA se uno dei due è troppo piccolo
-  return !(angleDiff <= ANGLE_THRESHOLD || distDiff <= DIST_THRESHOLD);
+  return distDiff > DIST_THRESHOLD;
 }
 
 
