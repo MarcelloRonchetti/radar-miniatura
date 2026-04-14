@@ -204,6 +204,25 @@ const ANGLE_THRESHOLD = 3;
 const DIST_THRESHOLD = 5;
 
 
+//Smooting semplice per evitare di disegnare punti troppo vicini tra loro (opzionale, dipende da rumore sensore)+
+// --- SMOOTHING ---
+let smoothedPacket = null;
+const ALPHA = 0.3;
+
+function smooth(packet) {
+  if (!smoothedPacket) {
+    smoothedPacket = packet;
+    return packet;
+  }
+
+  smoothedPacket = {
+    angolo: ALPHA * packet.angolo + (1 - ALPHA) * smoothedPacket.angolo,
+    distanza: ALPHA * packet.distanza + (1 - ALPHA) * smoothedPacket.distanza
+  };
+
+  return smoothedPacket;
+}
+
 // ── SETUP CANVAS ─────────────────────────────────────────────────────
 const canvas = document.getElementById('radarCanvas');
 const ctx    = canvas.getContext('2d');
@@ -309,18 +328,12 @@ draw();
 function shouldDisplay(packet) {
   if (!lastPacket) return true;
 
-  const angle = Number(packet.angolo);
-  const dist = Number(packet.distanza);
+  const angleDiff = Math.abs(packet.angolo - lastPacket.angolo);
+  const distDiff  = Math.abs(packet.distanza - lastPacket.distanza);
 
-  const lastAngle = lastPacket.angolo;
-  const lastDist = lastPacket.distanza;
-
-  const angleDiff = Math.abs(angle - lastAngle);
-  const distDiff = Math.abs(dist - lastDist);
-
+  // filtra solo se ENTRAMBI piccoli
   return !(angleDiff <= ANGLE_THRESHOLD && distDiff <= DIST_THRESHOLD);
 }
-
 
 
 
@@ -395,27 +408,37 @@ function connectWS(srv) {
   try {
     const d = JSON.parse(e.data);
 
-    // ✅ FILTER HERE
-    if (!shouldDisplay(d)) return;
-
-    // ✅ Only runs if packet is "different enough"
-    addPoint(d.angolo, d.distanza);
-    updateLast(d);
-    addRow(d, true);
-    updateStats(parseFloat(d.distanza));
-
-    lastPacket = {
+    const raw = {
     angolo: Number(d.angolo),
     distanza: Number(d.distanza)
-    }; // IMPORTANT
+    };
+
+    const current = smooth(raw); // 🔥 smoothing applicato
+
+    //  fai il check
+    if (!shouldDisplay(current)) {
+      lastPacket = current; // 🔥 FIX
+      return;
+    }
+
+    //  usa i dati
+    addPoint(current.angolo, current.distanza);
+    updateLast(d);
+    addRow(d, true);
+    updateStats(current.distanza);
+
+    lastPacket = current; // 🔥 sempre aggiornato
 
     n++;
     document.getElementById('counter').textContent = n + ' rilevamenti';
 
-  } catch(err) { 
-    console.error(err); 
-  }
+    } catch(err) { 
+      console.error(err); 
+    }
   };
+
+
+
   ws.onclose = () => {
     document.getElementById('sDot').classList.remove('on', 'connecting');
     document.getElementById('sTxt').textContent = 'offline';
