@@ -103,9 +103,11 @@
 </header>
 
 <div id="cfgBanner">
-  server ngrok:
-  <input type="text" id="srvInput" placeholder="https://xxxx.ngrok-free.app">
-  <button type="button" onclick="saveServer()">connetti</button>
+  <span style="white-space:nowrap">🌐 ngrok URL:</span>
+  <input type="text" id="srvInput" placeholder="https://xxxx.ngrok-free.app" onkeydown="if(event.key==='Enter')saveServer()">
+  <button type="button" id="btnConnect" onclick="saveServer()">connetti</button>
+  <button type="button" id="btnPing" onclick="pingServer()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;" title="Verifica che il server risponda">ping</button>
+  <span id="pingResult" style="font-size:11px;color:var(--text-dim);min-width:80px;"></span>
   <button type="button" onclick="hideConfig()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 10px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px;">✕</button>
 </div>
 
@@ -306,24 +308,59 @@ function addPoint(angleDeg, distCm) {
   pts.push({ x, y, alpha: 1, dist: d, ts: Date.now() });
 }
 
+// ── SERVER CONFIG ─────────────────────────────────────────────────────────
 function getServer() {
+  // Supporta ?server=https://xxx.ngrok-free.app per condividere il link diretto
   const p = new URLSearchParams(location.search);
-  if (p.get('server')) localStorage.setItem('rs', p.get('server'));
+  if (p.get('server')) localStorage.setItem('rs', p.get('server').replace(/\/$/, ''));
   return localStorage.getItem('rs');
 }
 function saveServer() {
   const v = document.getElementById('srvInput').value.trim().replace(/\/$/, '');
-  if (!v) return; localStorage.setItem('rs', v); hideConfig(); init();
+  if (!v) return;
+  localStorage.setItem('rs', v);
+  hideConfig();
+  init();
 }
-function showConfig() { document.getElementById('cfgBanner').style.display = 'flex'; }
+function showConfig() {
+  const saved = getServer();
+  if (saved) document.getElementById('srvInput').value = saved;
+  document.getElementById('cfgBanner').style.display = 'flex';
+  document.getElementById('srvInput').focus();
+}
 function hideConfig() { document.getElementById('cfgBanner').style.display = 'none'; }
 
+async function pingServer() {
+  const v = document.getElementById('srvInput').value.trim().replace(/\/$/, '') || getServer();
+  if (!v) { document.getElementById('pingResult').textContent = '⚠ nessun URL'; return; }
+  document.getElementById('pingResult').textContent = '…';
+  try {
+    const t0 = Date.now();
+    const r = await fetch(v + '/api/ping', { signal: AbortSignal.timeout(5000) });
+    const j = await r.json();
+    const ms = Date.now() - t0;
+    document.getElementById('pingResult').style.color = 'var(--green)';
+    document.getElementById('pingResult').textContent = `✓ ${ms}ms · ${j.wsClients} WS`;
+  } catch(e) {
+    document.getElementById('pingResult').style.color = 'var(--red)';
+    document.getElementById('pingResult').textContent = '✗ non raggiungibile';
+  }
+}
+
+// ── WEBSOCKET ─────────────────────────────────────────────────────────────
 function connectWS(srv) {
-  if (ws) ws.close();
+  if (ws) { ws.onclose = null; ws.close(); }
+
+  // http:// → ws://   |   https:// → wss://  (ngrok espone TLS, mappa correttamente)
+  const wsUrl = srv.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
+
+  document.getElementById('sDot').classList.remove('on');
   document.getElementById('sDot').classList.add('connecting');
-  document.getElementById('sTxt').textContent = 'connessione...';
-    ws = new WebSocket(srv.replace(/^http/, 'ws')); 
-    ws.onopen = () => {
+  document.getElementById('sTxt').textContent = 'connessione…';
+
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
     document.getElementById('sDot').classList.remove('connecting');
     document.getElementById('sDot').classList.add('on');
     document.getElementById('sTxt').textContent = 'online · ' + srv.replace(/^https?:\/\//, '');
@@ -331,8 +368,12 @@ function connectWS(srv) {
   ws.onmessage = e => {
     try {
       const d = JSON.parse(e.data);
-      addPoint(d.angolo, d.distanza); updateLast(d); addRow(d, true); updateStats(parseFloat(d.distanza));
-      n++; document.getElementById('counter').textContent = n + ' rilevamenti';
+      addPoint(d.angolo, d.distanza);
+      updateLast(d);
+      addRow(d, true);
+      updateStats(parseFloat(d.distanza));
+      n++;
+      document.getElementById('counter').textContent = n + ' rilevamenti';
     } catch(err) { console.error(err); }
   };
   ws.onclose = () => {
