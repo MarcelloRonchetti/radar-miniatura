@@ -322,13 +322,17 @@ function draw() {
 }
 draw();
 
-// ── Filtering semplice per evitare di disegnare punti troppo vicini tra loro (opzionale, dipende da rumore sensore)
+// ── Filtering semplice per evitare di disegnare punti troppo vicini tra loro (opzionale, dipendente da rumore sensore)
 function shouldDisplay(packet) {
+  // filtro disabilitato temporaneamente
+  return true;
+  /*
   if (!lastPacket) return true;
 
   const distDiff = Math.abs(packet.distanza - lastPacket.distanza);
 
   return distDiff > DIST_THRESHOLD;
+  */
 }
 
 
