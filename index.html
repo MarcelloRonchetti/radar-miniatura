@@ -208,6 +208,9 @@ let smoothedPacket = null;
 const ALPHA = 0.3;
 
 function smooth(packet) {
+  // smoothing disabilitato per non perdere rilevamenti rapidi o a distanza molto bassa
+  return packet;
+  /*
   if (!smoothedPacket) {
     smoothedPacket = packet;
     return packet;
@@ -219,6 +222,7 @@ function smooth(packet) {
   };
 
   return smoothedPacket;
+  */
 }
 
 // ── SETUP CANVAS ─────────────────────────────────────────────────────
@@ -457,7 +461,7 @@ function connectWS(srv) {
 
 function updateLast(d) {
   document.getElementById('dAng').textContent = parseFloat(d.angolo).toFixed(1);
-  document.getElementById('dDist').textContent = d.distanza;
+  document.getElementById('dDist').textContent = Number(d.distanza).toFixed(0);
   document.getElementById('dTime').textContent = new Date(d.timestamp).toLocaleTimeString('it-IT');
   const de = document.getElementById('dDist');
   de.classList.remove('alert', 'warning');
@@ -480,7 +484,7 @@ function addRow(d, pre) {
   tr.classList.add('fade-in');
   tr.innerHTML = `<td class="time">${new Date(d.timestamp).toLocaleTimeString('it-IT')}</td>
     <td class="ang">${parseFloat(d.angolo).toFixed(1)}°</td>
-    <td class="${d.distanza < 30 ? 'dist alert' : 'dist'}">${d.distanza} cm</td>`;
+    <td class="${d.distanza < 30 ? 'dist alert' : 'dist'}">${Number(d.distanza).toFixed(0)} cm</td>`;
   const tb = document.getElementById('tbody');
   if (pre) tb.insertBefore(tr, tb.firstChild); else tb.appendChild(tr);
   while (tb.children.length > 100) tb.removeChild(tb.lastChild);
